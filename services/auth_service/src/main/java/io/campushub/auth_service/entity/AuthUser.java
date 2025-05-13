@@ -38,10 +38,9 @@ public class AuthUser implements UserDetails {
     private Timestamp created_at;
 
     @UpdateTimestamp
-    @Column(updatable = true, name = "updated_at")
+    @Column(name = "updated_at")
     private Timestamp updated_at;
 
-    @Column(updatable = true)
     private Timestamp last_login;
 
     @Override
