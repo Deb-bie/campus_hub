@@ -3,6 +3,7 @@ package io.campushub.auth_service.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Builder
 public class AuthUser implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
