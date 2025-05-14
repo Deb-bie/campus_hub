@@ -40,11 +40,9 @@ public class AuthUser implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private Timestamp created_at;
 
-    @UpdateTimestamp
     @Column(name = "updated_at")
     private Timestamp updated_at;
 
