@@ -19,13 +19,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.Optional;
 
-// TODO: when I log in or sign up, i have to set the last loggined in
-// TODO: chane the type of the body message for the response handler
 
 @Service
-public class AuthService {
+public class AuthService<T> {
     private final AuthRepository authRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
@@ -43,7 +42,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public ResponseEntity<ResponseHandler> signUp(SignUpRequestDto signUpRequestDto) throws Exception {
+    public ResponseEntity<ResponseHandler<String>> signUp(SignUpRequestDto signUpRequestDto) throws Exception {
         Optional<AuthUser> emailExists = authRepository.findByEmail(signUpRequestDto.getEmail());
 
         if (emailExists.isPresent()) {
@@ -57,6 +56,9 @@ public class AuthService {
                     .lastName(signUpRequestDto.getLastName())
                     .email(signUpRequestDto.getEmail())
                     .password(encodedPassword)
+                    .created_at(new Timestamp(System.currentTimeMillis()))
+                    .updated_at(new Timestamp(System.currentTimeMillis()))
+                    .last_login(new Timestamp(System.currentTimeMillis()))
                     .build();
             authRepository.save(authUser);
         }
@@ -67,7 +69,7 @@ public class AuthService {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(
-                        ResponseHandler.builder()
+                        ResponseHandler.<String>builder()
                                 .statusCode(201)
                                 .status(HttpStatus.CREATED)
                                 .message("successful")
@@ -75,10 +77,11 @@ public class AuthService {
                 );
     }
 
-    public ResponseEntity<ResponseHandler> signIn(SignInRequestDto signInRequestDto) throws Exception {
+    public ResponseEntity<ResponseHandler<String>> signIn(SignInRequestDto signInRequestDto) throws Exception {
         String jwt = "";
         Optional<AuthUser> emailExists = authRepository.findByEmail(signInRequestDto.getEmail());
         if (emailExists.isPresent()) {
+            AuthUser authUser = emailExists.get();
 
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -90,6 +93,10 @@ public class AuthService {
             UserDetails userDetails = (UserDetails) auth.getPrincipal();
             jwt = jwtService.generateToken(userDetails);
 
+            authUser.setLast_login(new Timestamp(System.currentTimeMillis()));
+            authRepository.save(authUser);
+
+
         } else {
             throw new NotFoundException("Email does not exists");
         }
@@ -98,7 +105,7 @@ public class AuthService {
                 .status(HttpStatus.OK)
                 .body(
                         ResponseHandler
-                                .builder()
+                                .<String>builder()
                                 .status(HttpStatus.OK)
                                 .statusCode(HttpStatus.OK.value())
                                 .message(
