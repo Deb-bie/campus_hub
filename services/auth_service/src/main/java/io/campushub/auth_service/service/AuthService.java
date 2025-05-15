@@ -24,7 +24,7 @@ import java.util.Optional;
 
 
 @Service
-public class AuthService<T> {
+public class AuthService {
     private final AuthRepository authRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
@@ -43,6 +43,7 @@ public class AuthService<T> {
     }
 
     public ResponseEntity<ResponseHandler<String>> signUp(SignUpRequestDto signUpRequestDto) throws Exception {
+        String jwt = "";
         Optional<AuthUser> emailExists = authRepository.findByEmail(signUpRequestDto.getEmail());
 
         if (emailExists.isPresent()) {
@@ -61,6 +62,17 @@ public class AuthService<T> {
                     .last_login(new Timestamp(System.currentTimeMillis()))
                     .build();
             authRepository.save(authUser);
+
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            signUpRequestDto.getEmail(),
+                            signUpRequestDto.getPassword()
+                    )
+            );
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            UserDetails userDetails = (UserDetails) auth.getPrincipal();
+            jwt = jwtService.generateToken(userDetails);
+
         }
         else{
             throw new SchoolAccountException("Email must be a school account");
@@ -72,7 +84,7 @@ public class AuthService<T> {
                         ResponseHandler.<String>builder()
                                 .statusCode(201)
                                 .status(HttpStatus.CREATED)
-                                .message("successful")
+                                .message(jwt)
                         .build()
                 );
     }
@@ -115,6 +127,14 @@ public class AuthService<T> {
                 );
 
     }
+
+
+//    TODO: sign out
+//    create account needs to return a jwt
+//    TODO: refresh token
+//    TODO: reset password
+//    TODO: change password
+
 
 
 
