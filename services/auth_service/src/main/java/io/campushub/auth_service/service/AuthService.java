@@ -5,6 +5,7 @@ import io.campushub.auth_service.dto.requests.SignInRequestDto;
 import io.campushub.auth_service.dto.requests.SignUpRequestDto;
 import io.campushub.auth_service.dto.responses.ResponseHandler;
 import io.campushub.auth_service.entity.AuthUser;
+import io.campushub.auth_service.enums.AuthStatus;
 import io.campushub.auth_service.exceptions.AlreadyExistsException;
 import io.campushub.auth_service.exceptions.NotFoundException;
 import io.campushub.auth_service.exceptions.SchoolAccountException;
@@ -24,7 +25,7 @@ import java.util.Optional;
 
 
 @Service
-public class AuthService<T> {
+public class AuthService {
     private final AuthRepository authRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
@@ -43,6 +44,7 @@ public class AuthService<T> {
     }
 
     public ResponseEntity<ResponseHandler<String>> signUp(SignUpRequestDto signUpRequestDto) throws Exception {
+        String jwt;
         Optional<AuthUser> emailExists = authRepository.findByEmail(signUpRequestDto.getEmail());
 
         if (emailExists.isPresent()) {
@@ -56,11 +58,23 @@ public class AuthService<T> {
                     .lastName(signUpRequestDto.getLastName())
                     .email(signUpRequestDto.getEmail())
                     .password(encodedPassword)
+                    .authStatus(AuthStatus.ACTIVE)
                     .created_at(new Timestamp(System.currentTimeMillis()))
                     .updated_at(new Timestamp(System.currentTimeMillis()))
                     .last_login(new Timestamp(System.currentTimeMillis()))
                     .build();
             authRepository.save(authUser);
+
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            signUpRequestDto.getEmail(),
+                            signUpRequestDto.getPassword()
+                    )
+            );
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            UserDetails userDetails = (UserDetails) auth.getPrincipal();
+            jwt = jwtService.generateToken(userDetails);
+
         }
         else{
             throw new SchoolAccountException("Email must be a school account");
@@ -72,13 +86,13 @@ public class AuthService<T> {
                         ResponseHandler.<String>builder()
                                 .statusCode(201)
                                 .status(HttpStatus.CREATED)
-                                .message("successful")
+                                .message(jwt)
                         .build()
                 );
     }
 
     public ResponseEntity<ResponseHandler<String>> signIn(SignInRequestDto signInRequestDto) throws Exception {
-        String jwt = "";
+        String jwt;
         Optional<AuthUser> emailExists = authRepository.findByEmail(signInRequestDto.getEmail());
         if (emailExists.isPresent()) {
             AuthUser authUser = emailExists.get();
@@ -94,6 +108,7 @@ public class AuthService<T> {
             jwt = jwtService.generateToken(userDetails);
 
             authUser.setLast_login(new Timestamp(System.currentTimeMillis()));
+            authUser.setAuthStatus(AuthStatus.ACTIVE);
             authRepository.save(authUser);
 
 
@@ -115,6 +130,14 @@ public class AuthService<T> {
                 );
 
     }
+
+
+//    TODO: sign out
+//    create account needs to return a jwt
+//    TODO: refresh token
+//    TODO: reset password
+//    TODO: change password
+
 
 
 
