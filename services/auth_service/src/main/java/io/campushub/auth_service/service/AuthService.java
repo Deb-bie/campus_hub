@@ -5,6 +5,7 @@ import io.campushub.auth_service.dto.requests.SignInRequestDto;
 import io.campushub.auth_service.dto.requests.SignUpRequestDto;
 import io.campushub.auth_service.dto.responses.ResponseHandler;
 import io.campushub.auth_service.entity.AuthUser;
+import io.campushub.auth_service.enums.AuthStatus;
 import io.campushub.auth_service.exceptions.AlreadyExistsException;
 import io.campushub.auth_service.exceptions.NotFoundException;
 import io.campushub.auth_service.exceptions.SchoolAccountException;
@@ -43,7 +44,7 @@ public class AuthService {
     }
 
     public ResponseEntity<ResponseHandler<String>> signUp(SignUpRequestDto signUpRequestDto) throws Exception {
-        String jwt = "";
+        String jwt;
         Optional<AuthUser> emailExists = authRepository.findByEmail(signUpRequestDto.getEmail());
 
         if (emailExists.isPresent()) {
@@ -57,6 +58,7 @@ public class AuthService {
                     .lastName(signUpRequestDto.getLastName())
                     .email(signUpRequestDto.getEmail())
                     .password(encodedPassword)
+                    .authStatus(AuthStatus.ACTIVE)
                     .created_at(new Timestamp(System.currentTimeMillis()))
                     .updated_at(new Timestamp(System.currentTimeMillis()))
                     .last_login(new Timestamp(System.currentTimeMillis()))
@@ -90,7 +92,7 @@ public class AuthService {
     }
 
     public ResponseEntity<ResponseHandler<String>> signIn(SignInRequestDto signInRequestDto) throws Exception {
-        String jwt = "";
+        String jwt;
         Optional<AuthUser> emailExists = authRepository.findByEmail(signInRequestDto.getEmail());
         if (emailExists.isPresent()) {
             AuthUser authUser = emailExists.get();
@@ -106,6 +108,7 @@ public class AuthService {
             jwt = jwtService.generateToken(userDetails);
 
             authUser.setLast_login(new Timestamp(System.currentTimeMillis()));
+            authUser.setAuthStatus(AuthStatus.ACTIVE);
             authRepository.save(authUser);
 
 
