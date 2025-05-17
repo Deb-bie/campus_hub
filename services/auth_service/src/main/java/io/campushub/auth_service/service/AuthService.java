@@ -132,8 +132,8 @@ public class AuthService {
 
     }
 
-    public ResponseEntity<ResponseHandler<String>> signOut(UUID authId) throws Exception {
-        Optional<AuthUser> authUser = authRepository.findById(authId);
+    public ResponseEntity<ResponseHandler<String>> signOut(UUID auth_id) throws Exception {
+        Optional<AuthUser> authUser = authRepository.findById(auth_id);
         if (authUser.isPresent()) {
             authUser.get().setAuthStatus(AuthStatus.INACTIVE);
         } else {
@@ -150,14 +150,6 @@ public class AuthService {
                 );
 
     }
-
-
-//    TODO: refresh token
-//    TODO: reset password
-//    TODO: change password
-
-
-
 
     public boolean validateEmail(String email) {
         return email.endsWith(".edu");
