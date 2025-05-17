@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -131,9 +132,26 @@ public class AuthService {
 
     }
 
+    public ResponseEntity<ResponseHandler<String>> signOut(UUID authId) throws Exception {
+        Optional<AuthUser> authUser = authRepository.findById(authId);
+        if (authUser.isPresent()) {
+            authUser.get().setAuthStatus(AuthStatus.INACTIVE);
+        } else {
+            throw new NotFoundException("User does not Exist");
+        }
 
-//    TODO: sign out
-//    create account needs to return a jwt
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ResponseHandler
+                        .<String>builder()
+                        .status(HttpStatus.OK)
+                        .statusCode(HttpStatus.OK.value())
+                        .message("successful")
+                        .build()
+                );
+
+    }
+
+
 //    TODO: refresh token
 //    TODO: reset password
 //    TODO: change password
