@@ -17,26 +17,8 @@ class UserProfile(Base):
         index=True
     )
 
-    first_name = Column(
-        String,
-        nullable=False
-    )
-
-    last_name = Column(
-        String,
-        nullable=False
-    )
-
-    email = Column(
-        String,
-        nullable=False,
-        unique=True,
-        index=True
-    )
-
-    password = Column(
-        String,
-        nullable=False
+    bio = Column(
+        String
     )
 
     created_at = Column(
@@ -46,9 +28,3 @@ class UserProfile(Base):
     updated_at = Column(
         datetime
     )
-
-    last_loggedIn = Column(
-        datetime
-    )
-
-
