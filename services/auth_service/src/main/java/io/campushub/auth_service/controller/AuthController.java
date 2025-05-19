@@ -12,12 +12,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("api/auth")
-public class AuthController<T> {
-    private final AuthService<T> authService;
+public class AuthController {
+    private final AuthService authService;
 
-    public AuthController(AuthService<T> authService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
@@ -33,6 +35,13 @@ public class AuthController<T> {
     @PostMapping("/signin")
     public ResponseEntity<ResponseHandler<String>> signIn(@RequestBody SignInRequestDto signInRequestDto) throws Exception {
         return this.authService.signIn(signInRequestDto);
+    }
+
+    @Operation(summary = "sign out")
+    @ApiResponse(responseCode = "200", description = "successful")
+    @PostMapping("/signout")
+    public ResponseEntity<ResponseHandler<String>> signOut(@RequestBody UUID auth_id) throws Exception {
+        return this.authService.signOut(auth_id);
     }
 
 }
