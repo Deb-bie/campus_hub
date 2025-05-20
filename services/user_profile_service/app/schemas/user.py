@@ -9,11 +9,15 @@ class UserProfileBase(BaseModel):
     email: EmailStr
 
 
+class UserProfileCreate(UserProfileBase):
+    id: uuid
+    
+
 class UserProfileResponse(UserProfileBase):
     id: uuid
+    bio: Optional[str]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
-    last_loggedIn: Optional[datetime]
 
     class Config:
         orm_mode=True
