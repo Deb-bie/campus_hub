@@ -1,4 +1,4 @@
-import uuid
+from uuid import UUID
 from datetime import datetime
 from pydantic import BaseModel, EmailStr # type: ignore
 from typing import Optional
@@ -10,11 +10,11 @@ class UserProfileBase(BaseModel):
 
 
 class UserProfileCreate(UserProfileBase):
-    id: uuid
+    id: UUID
     
 
 class UserProfileResponse(UserProfileBase):
-    id: uuid
+    id: UUID
     bio: Optional[str]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
