@@ -2,10 +2,11 @@ import os
 from sqlalchemy import create_engine # type: ignore
 from sqlalchemy.orm import sessionmaker # type: ignore
 from dotenv import load_dotenv # type: ignore
+from pathlib import Path
 
-dotenv_path = "../../.env"
+env_path = Path(__file__).resolve().parents[2] / ".env"
 
-load_dotenv(dotenv_path)
+load_dotenv(dotenv_path=env_path)
 
 DATABASE__USER = os.getenv("DATABASE__USER")
 DATABASE__PASSWORD = os.getenv("DATABASE__PASSWORD")
@@ -20,5 +21,3 @@ engine = create_engine(DATABASE_URL)
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
