@@ -34,7 +34,8 @@ class UserProfile(Base):
     )
 
     bio = Column(
-        String
+        String,
+        nullable=True
     )
 
     created_at = Column(

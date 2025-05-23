@@ -10,14 +10,15 @@ class UserProfileBase(BaseModel):
 
 
 class UserProfileCreate(UserProfileBase):
-    id: UUID
-    
+    user_id: UUID
+
+
 
 class UserProfileResponse(UserProfileBase):
-    id: UUID
-    bio: Optional[str]
-    created_at: Optional[datetime]
-    updated_at: Optional[datetime]
+    user_id: UUID
+    bio: str | None
+    created_at: datetime | None
+    updated_at: datetime | None
 
     class Config:
-        orm_mode=True
+        from_attributes=True
