@@ -6,7 +6,6 @@ import java.util.UUID;
 
 @Data
 @NoArgsConstructor
-@RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ProfileServiceRequestDto {
