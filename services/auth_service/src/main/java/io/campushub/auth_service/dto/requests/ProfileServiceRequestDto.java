@@ -5,10 +5,9 @@ import lombok.*;
 import java.util.UUID;
 
 @Data
-@Builder
-@AllArgsConstructor
-@RequiredArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ProfileServiceRequestDto {
     private UUID userId;
     private String firstName;
