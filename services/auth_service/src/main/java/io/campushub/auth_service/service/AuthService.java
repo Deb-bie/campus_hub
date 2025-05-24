@@ -1,6 +1,8 @@
 package io.campushub.auth_service.service;
 
 import io.campushub.auth_service.config.JwtService;
+import io.campushub.auth_service.config.WebClientFactory;
+import io.campushub.auth_service.dto.requests.ProfileServiceRequestDto;
 import io.campushub.auth_service.dto.requests.SignInRequestDto;
 import io.campushub.auth_service.dto.requests.SignUpRequestDto;
 import io.campushub.auth_service.dto.responses.ResponseHandler;
@@ -10,6 +12,7 @@ import io.campushub.auth_service.exceptions.AlreadyExistsException;
 import io.campushub.auth_service.exceptions.NotFoundException;
 import io.campushub.auth_service.exceptions.SchoolAccountException;
 import io.campushub.auth_service.repository.AuthRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.sql.Timestamp;
 import java.util.Optional;
@@ -31,17 +35,23 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final WebClient webClient;
+
+    @Value("${campushub.services.user_profile_service}")
+    private String profileServiceUrl;
 
     public AuthService(
             AuthRepository authRepository,
             AuthenticationManager authenticationManager,
             JwtService jwtService,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            WebClientFactory webClientFactory
     ) {
         this.authRepository = authRepository;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.webClient = webClientFactory.createClient(profileServiceUrl);
     }
 
     public ResponseEntity<ResponseHandler<String>> signUp(SignUpRequestDto signUpRequestDto) throws Exception {
@@ -65,6 +75,14 @@ public class AuthService {
                     .last_login(new Timestamp(System.currentTimeMillis()))
                     .build();
             authRepository.save(authUser);
+
+            ProfileServiceRequestDto profileServiceRequestDto = new ProfileServiceRequestDto();
+            profileServiceRequestDto.setUserId(authUser.getAuth_id());
+            profileServiceRequestDto.setEmail(signUpRequestDto.getEmail());
+            profileServiceRequestDto.setFirstName(signUpRequestDto.getFirstName());
+            profileServiceRequestDto.setLastName(signUpRequestDto.getLastName());
+
+            addUserDetailsToProfileService(profileServiceRequestDto);
 
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -153,5 +171,15 @@ public class AuthService {
 
     public boolean validateEmail(String email) {
         return email.endsWith(".edu");
+    }
+
+    public void addUserDetailsToProfileService(ProfileServiceRequestDto profileServiceRequestDto) {
+        webClient
+                .post()
+                .uri("/me")
+                .bodyValue(profileServiceRequestDto)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .subscribe();
     }
 }
