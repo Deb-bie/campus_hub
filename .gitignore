@@ -1,0 +1,21 @@
+.env
+__pycache__
+
+
+# profile
+services/user_profile_service/venv
+services/user_profile_service/.env
+services/user_profile_service/.env.dev
+
+# auth
+services/auth_service/.gradle
+services/auth_service/.gitattributes
+services/auth_service/.gitignore
+services/auth_service/src/main/resources/application-dev*
+services/auth_service/src/main/resources/application-prod.properties
+services/auth_service/src/main/resources/application-docker.properties
+
+# events
+services/events_service/venv
+services/user_profile_service/.env.docker
+services/user_profile_service/.env.prod
