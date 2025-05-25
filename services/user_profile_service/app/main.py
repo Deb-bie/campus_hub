@@ -1,9 +1,9 @@
 from fastapi import FastAPI # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
-from .api.v1.api_router import router as api_router
-from .config import settings
-from .models.user import Base
-from .db.base import engine
+from app.config import settings
+from app.api.v1.api_router import router as api_router
+from app.models.user import Base 
+from app.db.base import engine
 
 
 app = FastAPI(
