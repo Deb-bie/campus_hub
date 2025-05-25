@@ -12,6 +12,7 @@ import io.campushub.auth_service.exceptions.AlreadyExistsException;
 import io.campushub.auth_service.exceptions.NotFoundException;
 import io.campushub.auth_service.exceptions.SchoolAccountException;
 import io.campushub.auth_service.repository.AuthRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,9 +36,10 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
-    private final WebClient webClient;
+    private  WebClient webClient;
+    private final WebClientFactory webClientFactory;
 
-    @Value("${campushub.services.user_profile_service}")
+    @Value("${campushub.services.user-profile-service}")
     private String profileServiceUrl;
 
     public AuthService(
@@ -51,6 +53,11 @@ public class AuthService {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.webClientFactory = webClientFactory;
+    }
+
+    @PostConstruct
+    public void init(){
         this.webClient = webClientFactory.createClient(profileServiceUrl);
     }
 
@@ -77,10 +84,10 @@ public class AuthService {
             authRepository.save(authUser);
 
             ProfileServiceRequestDto profileServiceRequestDto = new ProfileServiceRequestDto();
-            profileServiceRequestDto.setUserId(authUser.getAuth_id());
+            profileServiceRequestDto.setUser_id(authUser.getAuth_id());
             profileServiceRequestDto.setEmail(signUpRequestDto.getEmail());
-            profileServiceRequestDto.setFirstName(signUpRequestDto.getFirstName());
-            profileServiceRequestDto.setLastName(signUpRequestDto.getLastName());
+            profileServiceRequestDto.setFirst_name(signUpRequestDto.getFirstName());
+            profileServiceRequestDto.setLast_name(signUpRequestDto.getLastName());
 
             addUserDetailsToProfileService(profileServiceRequestDto);
 
@@ -176,10 +183,13 @@ public class AuthService {
     public void addUserDetailsToProfileService(ProfileServiceRequestDto profileServiceRequestDto) {
         webClient
                 .post()
-                .uri("/me")
+                .uri("/api/v1/users/profile/")
                 .bodyValue(profileServiceRequestDto)
                 .retrieve()
-                .bodyToMono(Void.class)
-                .subscribe();
+                .toBodilessEntity()
+                .doOnError(error -> {
+                    System.err.println("Error calling profile service: " + error.getMessage());
+                })
+                .block();
     }
 }
