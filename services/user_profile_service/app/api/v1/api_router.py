@@ -1,5 +1,5 @@
 from fastapi import APIRouter # type: ignore
-from .endpoints import users
+from app.api.v1.endpoints import users
 
 router = APIRouter()
 
