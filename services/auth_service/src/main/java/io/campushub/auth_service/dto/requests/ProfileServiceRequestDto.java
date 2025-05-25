@@ -9,8 +9,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class ProfileServiceRequestDto {
-    private UUID userId;
-    private String firstName;
-    private String lastName;
+    private UUID user_id;
+    private String first_name;
+    private String last_name;
     private String email;
 }
