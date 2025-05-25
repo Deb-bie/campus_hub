@@ -1,5 +1,18 @@
 import os
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict # type: ignore
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = os.getenv("ENV", "development").lower()
+
+env_file_map = {
+    "development": BASE_DIR / ".env.dev",
+    "production": BASE_DIR / ".env.prod",
+    "docker": BASE_DIR / ".env.docker"
+}
+
+selected_env_file = env_file_map.get(env, BASE_DIR / ".env.dev")
 
 class Settings(BaseSettings):
     API_V1: str = "/api/v1"
@@ -15,20 +28,11 @@ class Settings(BaseSettings):
 
 
     model_config = SettingsConfigDict(
-        env_file=".env.dev",
+        env_file= ".env.dev",
         env_file_encoding="utf-8",
         extra="allow"
     )
 
-env = os.getenv("ENV", "development").lower()
-
-env_file_map = {
-    "development": ".env.dev",
-    "production": ".env.prod",
-    "docker": ".env.docker"
-}
-
-selected_env_file = env_file_map.get(env, ".env.dev")
 
 settings = Settings(_env_file=selected_env_file)
 
