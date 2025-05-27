@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     DATABASE__HOST: str
     DATABASE__PORT: int
     DATABASE__NAME: str
+    JWT__SECRET__KEY: str
+    ALGORITHM: str
     PORT: int
     ENV: str ="development"
 
