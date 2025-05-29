@@ -1,6 +1,12 @@
 .env
 __pycache__
 
+# api gateway
+services/api_gateway/node_modules
+services/api_gateway/.env.dev
+services/api_gateway/.env.prod
+services/api_gateway/.env.docker
+services/api_gateway/.env
 
 # profile
 services/user_profile_service/venv
