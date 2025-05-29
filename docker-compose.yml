@@ -24,6 +24,21 @@ services:
     depends_on:
       - postgres
     container_name: campushub_user_profile
+
+  api-gateway:
+    build:
+      context: ./services/api_gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./services/api_gateway/.env.docker
+    environment:
+      - NODE_ENV=docker
+    depends_on:
+      - auth-service
+      - user-profile-service
+    container_name: campushub_api_gateway
   
   
   postgres:
