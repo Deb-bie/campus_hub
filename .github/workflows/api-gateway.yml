@@ -1,0 +1,44 @@
+name: Api Gateway
+
+on:
+  push:
+    paths:
+      - 'services/api_gateway/**'
+      - '.github/workflows/api-gateway.yml'
+  pull_request:
+    paths:
+      - 'services/api_gateway/**'
+  workflow_dispatch:
+
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '23'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+
+  deploy:
+    needs: build-test
+    if: github.ref == 'refs/heads/main' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Server / Cloud
+        run: |
+          echo "Deploying api_gateway..."
+          # actual deployments will come here!
