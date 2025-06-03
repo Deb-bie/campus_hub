@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends # type: ignore
+from fastapi import APIRouter, Depends, HTTPException # type: ignore
 from app.crud.users import CrudUser
 from app.dependencies import get_current_user, get_db
 from app.schemas.user import UserProfileCreate, UserProfileResponse
@@ -18,10 +18,22 @@ async def create_user_profile(
     return user_profile
 
 
-# get user profile
+# get current user profile
 @router.get("/me", response_model=UserProfileResponse, description="Get current user profile")
 async def get_current_user_profile(
     current_user: UserProfile = Depends(get_current_user),
 
 ):
     return current_user
+
+
+# get user using user id
+@router.get("/{user_id}", response_model=UserProfileResponse, description="Get user profile")
+async def get_user_profile(
+    user_id,
+    db: Session = Depends(get_db)
+):
+    user = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
