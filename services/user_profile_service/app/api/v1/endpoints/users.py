@@ -18,7 +18,7 @@ async def create_user_profile(
     return user_profile
 
 
-# get user profile
+# get current user profile
 @router.get("/me", response_model=UserProfileResponse, description="Get current user profile")
 async def get_current_user_profile(
     current_user: UserProfile = Depends(get_current_user),
