@@ -1,6 +1,6 @@
-from enums.category_enum import CategoryEnum
-from enums.event_status import EventStatusEnum
-from ..utils import db
+from ..enums.category_enum import CategoryEnum
+from ..enums.event_status import EventStatusEnum
+from app.utils.db import db
 from datetime import datetime
 import uuid
 from sqlalchemy.dialects.postgresql import UUID, ARRAY # type: ignore
@@ -45,7 +45,7 @@ class Event(db.Model):
     )
 
     end_time = db.Column(
-        db.Datetime
+        db.DateTime
     )
 
     category = db.Column(
