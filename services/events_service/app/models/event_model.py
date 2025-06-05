@@ -32,7 +32,6 @@ class Event(db.Model):
 
     organizer_id = db.Column(
         UUID(as_uuid=True),
-        db.ForeignKey('users.id'),
         nullable=False
     )
 
@@ -119,7 +118,7 @@ class Event(db.Model):
             'start_time': self.start_time,
             'end_time': self.end_time,
             'capacity': self.capacity,
-            'category': self.category,
+            'category': self.category.value,
             'tags': self.tags,
             'image_url': self.image_url,
             'is_public': self.is_public,
@@ -128,7 +127,7 @@ class Event(db.Model):
             'is_free': self.is_free,
             'fee': self.fee,
             'virtual_meeting_link': self.virtual_meeting_link,
-            'status': self.status,
+            'status': self.status.value,
             'created_at': self.created_at,
             'updated_at': self.updated_at
         }
