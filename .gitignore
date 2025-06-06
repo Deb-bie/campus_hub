@@ -23,5 +23,4 @@ services/auth_service/src/main/resources/application-docker.properties
 
 # events
 services/events_service/venv
-services/user_profile_service/.env.docker
-services/user_profile_service/.env.prod
+services/events_service/.env.docker
