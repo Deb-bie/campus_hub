@@ -1,0 +1,53 @@
+name: Events Service CI/CD
+
+on:
+    push:
+        paths:
+            - 'services/events_service/**'
+            - '.github/workflows/events.yml'
+    pull_request:
+        paths:
+            - 'services/events_service/**'
+    
+    workflow_dispatch:
+
+jobs:
+    build-test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Python 3.12
+              uses: actions/setup-python@v5
+              with:
+                python-version: '3.12'
+
+            - name: Install dependencies
+              working-directory: services/events_service
+              run: |
+                python -m pip install --upgrade pip
+                pip install -r requirements.txt
+
+            - name: Run tests
+              working-directory: services/events_service
+              run: echo "No tests to run"
+              # run: |
+                # pytest
+
+    
+    deploy:
+        needs: build-test
+        if: github.ref == 'refs/heads/main' && success()
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Deploy Events Service
+              run: |
+                echo "Deploying events service"
+                # actual deployments will come here!
+
