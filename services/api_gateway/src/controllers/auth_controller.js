@@ -62,7 +62,7 @@ const proxyToAuthService = async (req, res, endpoint, includeAuth = false) => {
  * POST /auth/login
  */
 const signin = async (req, res) => {
-  await proxyToAuthService(req, res, '/api/auth/signin');
+  await proxyToAuthService(req, res, '/signin');
 };
 
 /**
@@ -70,7 +70,7 @@ const signin = async (req, res) => {
  * POST /auth/register
  */
 const signup = async (req, res) => {
-  await proxyToAuthService(req, res, '/api/auth/signup');
+  await proxyToAuthService(req, res, '/signup');
 };
 
 
