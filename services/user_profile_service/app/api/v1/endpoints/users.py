@@ -37,3 +37,15 @@ async def get_user_profile(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+
+# get user by email
+@router.get("/{user_email}", response_model=UserProfileResponse, description="Get user profile")
+async def get_user_profile(
+    user_email,
+    db: Session = Depends(get_db)
+):
+    user = db.query(UserProfile).filter(UserProfile.email == user_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
