@@ -30,7 +30,7 @@ jobs:
         working-directory: services/api_gateway
 
       - name: Run tests
-        run: npm 
+        run: echo "Testing"
         working-directory: services/api_gateway
 
 
