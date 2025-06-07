@@ -6,6 +6,7 @@ const { globalErrorHandler, notFoundHandler } = require('./middlewares/error_han
 const {loadEnv, config} = require("./config/index");
 const authRoutes = require('./routes/auth');
 const userProfileRoutes = require('./routes/user_profile');
+const eventsRoutes = require("./routes/events");
 
 require('dotenv').config();
 
@@ -21,8 +22,9 @@ app.use(express.json());
 
 
 // Routes
-app.use('/auth', authRoutes)
-app.use('/user-profile', userProfileRoutes);
+app.use('/api/auth', authRoutes)
+app.use('/api/user-profile', userProfileRoutes);
+app.use('/api/events', eventsRoutes)
 
 
 // Health check (before error handler)
