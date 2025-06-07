@@ -7,7 +7,7 @@ from ..services.user_profile_service import get_current_user
 event_blueprint = Blueprint("event", __name__, url_prefix="/api/events")
 
 # create event
-@event_blueprint.route("/", methods=["POST"])
+@event_blueprint.route("/create", methods=["POST"])
 def create_event():
 
     try:
