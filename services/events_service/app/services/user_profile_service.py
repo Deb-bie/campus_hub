@@ -2,7 +2,7 @@ import os
 import requests # type: ignore
 
 
-def get_current_user_by_email(user_email):
+def get_user_by_email(user_email):
     profile_url = f"{os.getenv("API_GATEWAY_URL")}/api/v1/user-profile/users/profile/{user_email}"
     response = requests.get(profile_url)
 
