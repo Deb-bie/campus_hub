@@ -10,7 +10,7 @@ const target = process.env.EVENTS_SERVICE_URL;
 
 // No jwt urls
 router.use(
-  ['/events/public-feed'],
+  ['/public-feed'],
   createProxyMiddleware({
     target,
     changeOrigin: true,
@@ -20,7 +20,7 @@ router.use(
 
 // Jwt required
 router.use(
-  ['/events/create'],
+  ['/create'],
   authenticateJWT,
   createProxyMiddleware({
     target,
@@ -43,6 +43,7 @@ router.use(
         }
         
         if (userEmail) {
+          console.log("Proxying to Events Service...")
           proxyReq.setHeader('x-user-email', userEmail);
         } else{
           console.error('Cannot set user headers - no email found');
