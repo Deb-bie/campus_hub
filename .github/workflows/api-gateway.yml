@@ -26,12 +26,12 @@ jobs:
           cache-dependency-path: services/api_gateway/package-lock.json
 
       - name: Install dependencies
-        run: |
-          cd services/api_gateway
-          npm install
+        run: npm install
+        working-directory: services/api_gateway
 
       - name: Run tests
-        run: npm test
+        run: npm 
+        working-directory: services/api_gateway
 
 
   deploy:
