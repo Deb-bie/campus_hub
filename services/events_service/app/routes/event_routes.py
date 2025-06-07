@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify # type: ignore
 from ..utils.db import db
 from ..models.event_model import Event
-from ..services.user_profile_service import get_current_user
+from ..services.user_profile_service import get_user_by_email
 
 # blueprint
 event_blueprint = Blueprint("event", __name__, url_prefix="/api/events")
@@ -16,17 +16,16 @@ def create_event():
         if not data:
             return jsonify({"error": "Invalid or missing JSON body"}), 400
 
-        auth_header = request.headers.get("Authorization")
-    
-        if not auth_header:
+        user_email = request.headers.get('x-user-email')
+
+        if not user_email:
             return jsonify(
                 {
-                    "error": "Missing Authorization header"        
+                    "error": "Unauthorized - Missing User Email"        
                 }
             ), 401
-        
-        token = auth_header.replace("Bearer ", "")
-        user_info = get_current_user(token)
+
+        user_info = get_user_by_email(user_email)
         organizer_id = user_info.get("user_id")
 
         name = data['name']
