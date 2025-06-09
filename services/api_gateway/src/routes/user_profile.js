@@ -38,18 +38,12 @@ router.use(
         
         if (req.user) {
           userEmail = req.user.sub;
-        }
-      
-        if (!userEmail) {
+          proxyReq.setHeader('x-user-email', userEmail);
+        } else {
           console.error('CRITICAL: No user email found in token');
           console.error('Available user fields:', Object.keys(req.user || {}));
           console.error('Full req.user object:', req.user);
           console.error('Proceeding with proxy but service will likely reject...');
-        }
-        
-        if (userEmail) {
-          proxyReq.setHeader('x-user-email', userEmail);
-        } else{
           console.error('Cannot set user headers - no email found');
           res.status(401).json({ error: 'Invalid token: missing user email' });
         }
