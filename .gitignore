@@ -12,6 +12,8 @@ services/api_gateway/.env
 services/user_profile_service/venv
 services/user_profile_service/.env
 services/user_profile_service/.env.dev
+services/user_profile_service/.env.docker
+services/user_profile_service/.env.prod
 
 # auth
 services/auth_service/.gradle
