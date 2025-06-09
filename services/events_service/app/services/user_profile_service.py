@@ -1,15 +1,25 @@
 import os
 import requests # type: ignore
+from flask import jsonify # type: ignore
 
 
-def get_user_by_email(user_email):
-    profile_url = f"{os.getenv("API_GATEWAY_URL")}/api/v1/user-profile/users/profile/{user_email}"
-    response = requests.get(profile_url)
+def get_user_by_email(user_email, token):
+    try:
+        profile_url = f"{os.getenv("API_GATEWAY_URL")}/api/user-profile/users/profile/email/{user_email}"
+        headers = {"Authorization": f"Bearer {token}"}
+        response = requests.get(profile_url, headers=headers)
 
-    if response.status_code == 200:
-        return response.json()
-    else:
-        return None
+        if response.status_code != 200:
+            return jsonify({"error": "User not found"})
+        
+        user_data = response.json()
+        return user_data
+
+    except Exception as e:
+        print("please5")
+        print("Exception while reading JSON:", e)
+        print("Raw response:", response.text)
+        return jsonify({"error": str(e)})
 
 
 def get_user_by_id(user_id):
