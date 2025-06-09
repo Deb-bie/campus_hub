@@ -20,12 +20,12 @@ router.use(
 
 // Jwt required
 router.use(
-  ['/create'],
+  '/',
   authenticateJWT,
   createProxyMiddleware({
-    target,
+    target: target,
     changeOrigin: true,
-    selfHandleResponse: false,
+    // selfHandleResponse: false,
 
     on: {
       proxyReq: (proxyReq, req, res) => {
@@ -33,26 +33,46 @@ router.use(
         
         if (req.user) {
           userEmail = req.user.sub;
-        }
-      
-        if (!userEmail) {
+          
+        } else{
           console.error('CRITICAL: No user email found in token');
           console.error('Available user fields:', Object.keys(req.user || {}));
           console.error('Full req.user object:', req.user);
           console.error('Proceeding with proxy but service will likely reject...');
         }
+      
+
+        if (['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
+          const bodyData = JSON.stringify(req.body);
+
+          if (bodyData && userEmail) {
+
+            console.log("Proxying to events service: Headers set ", {
+              target: target
+            })
+
+            proxyReq.setHeader('Content-Type', 'application/json');
+            proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+            proxyReq.setHeader('x-user-email', userEmail);
+            proxyReq.setHeader('authorization', req.headers.authorization)
+            proxyReq.write(bodyData);
+          }
+          else{
+            console.error('Cannot set user headers - no email found');
+            res.status(401).json({ error: 'Invalid token: missing user email' });
+          }
+        }
         
-        if (userEmail) {
-          console.log("Proxying to Events Service...")
-          proxyReq.setHeader('x-user-email', userEmail);
-        } else{
-          console.error('Cannot set user headers - no email found');
-          res.status(401).json({ error: 'Invalid token: missing user email' });
+        else {
+          if (userEmail) {
+            console.log("Proxying to events service: Headers set ", {
+              target: target
+            })
+            proxyReq.setHeader('x-user-email', userEmail);
+            proxyReq.setHeader('authorization', req.headers.authorization)
+          } 
         }
-    
-        if (req.headers.authorization) {
-          proxyReq.setHeader('authorization', req.headers.authorization);
-        }
+        
       },
 
       error: (err, req, res) => {
@@ -61,13 +81,13 @@ router.use(
           code: err.code,
           method: req.method,
           url: req.url,
-          target: process.env.USER_PROFILE_SERVICE_URL
+          target: target
         });
 
         if (!res.headersSent) {
           res.status(502).json({
             error: 'Service unavailable',
-            message: 'User profile service is currently unavailable',
+            message: 'Events service is currently unavailable',
             details: process.env.NODE_ENV === 'development' ? err.message : undefined,
             timestamp: new Date().toISOString()
           });
@@ -76,7 +96,7 @@ router.use(
     },
 
     pathRewrite: {
-      '^/events': '',
+      '^': '/api/events/',
     }
 
   })
