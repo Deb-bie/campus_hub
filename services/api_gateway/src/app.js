@@ -1,11 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const bodyParser = require('body-parser');
 
 const { globalErrorHandler, notFoundHandler } = require('./middlewares/error_handlers');
 const {loadEnv, config} = require("./config/index");
 const authRoutes = require('./routes/auth');
 const userProfileRoutes = require('./routes/user_profile');
+const eventsRoutes = require("./routes/events");
 
 require('dotenv').config();
 
@@ -19,10 +21,13 @@ app.use(cors(config.cors));
 
 app.use(express.json());
 
+app.use('/api/events', bodyParser.json());
+
 
 // Routes
-app.use('/auth', authRoutes)
-app.use('/user-profile', userProfileRoutes);
+app.use('/api/auth', authRoutes)
+app.use('/api/user-profile', userProfileRoutes);
+app.use('/api/events', eventsRoutes)
 
 
 // Health check (before error handler)

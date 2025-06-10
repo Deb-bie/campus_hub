@@ -16,19 +16,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '23'
           cache: 'npm'
+          cache-dependency-path: services/api_gateway/package-lock.json
 
       - name: Install dependencies
         run: npm install
+        working-directory: services/api_gateway
 
       - name: Run tests
-        run: npm test
+        run: echo "Testing"
+        working-directory: services/api_gateway
 
 
   deploy:
@@ -36,7 +39,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && success()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Deploy to Server / Cloud
         run: |

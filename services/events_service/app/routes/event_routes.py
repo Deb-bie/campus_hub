@@ -11,27 +11,29 @@ event_blueprint = Blueprint("event", __name__, url_prefix="/api/events")
 def create_event():
 
     try:
-        data: Event = request.get_json()
+        data = request.get_json()
 
         if not data:
             return jsonify({"error": "Invalid or missing JSON body"}), 400
 
         user_email = request.headers.get('x-user-email')
+        auth_header = request.headers.get("Authorization")
 
-        if not user_email:
+        if not user_email or not auth_header:
             return jsonify(
                 {
-                    "error": "Unauthorized - Missing User Email"        
+                    "error": "Unauthorized - Missing headers"        
                 }
             ), 401
+        
+        token = auth_header.replace("Bearer ", "")
+        user_info = get_user_by_email(user_email, token)
 
-        user_info = get_user_by_email(user_email)
         organizer_id = user_info.get("user_id")
         organizer_first_name = user_info.get("first_name")
         organizer_last_name = user_info.get("last_name")
 
         organizer_name = organizer_first_name + organizer_last_name
-
         name = data['name']
         description = data['description']
         short_description = data['short_description']
@@ -77,17 +79,19 @@ def create_event():
             {
                 'message': "successful",
                 # 'result': event.to_json()
-                'result': event.to_json_with_organizer(organizer_name)
+                'result': event.to_json_with_organizer(organizer_name),
+                'status_code': 201
             }
-        ), 201
+        )
     
     except Exception as e:
         db.session.rollback()
         return jsonify (
             {
-                'error': str(e)
+                'error': str(e),
+                'status_code': 400
             }
-        ), 400
+        )
 
 
 
