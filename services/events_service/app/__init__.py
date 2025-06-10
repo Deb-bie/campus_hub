@@ -1,12 +1,12 @@
 from flask import Flask # type: ignore
-from .config import Config
+from .config import config
 from .utils.db import db
 from app.routes.event_routes import event_blueprint
 
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config)
 
     db.init_app(app)
     
