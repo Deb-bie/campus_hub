@@ -30,6 +30,10 @@ def create_event():
         user_info = get_user_by_email(user_email, token)
 
         organizer_id = user_info.get("user_id")
+        organizer_first_name = user_info.get("first_name")
+        organizer_last_name = user_info.get("last_name")
+
+        organizer_name = organizer_first_name + organizer_last_name
         name = data['name']
         description = data['description']
         short_description = data['short_description']
@@ -74,7 +78,8 @@ def create_event():
         return jsonify(
             {
                 'message': "successful",
-                'result': event.to_json(),
+                # 'result': event.to_json()
+                'result': event.to_json_with_organizer(organizer_name),
                 'status_code': 201
             }
         )

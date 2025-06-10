@@ -131,5 +131,32 @@ class Event(db.Model):
             'created_at': self.created_at,
             'updated_at': self.updated_at
         }
+    
+
+    def to_json_with_organizer(self, organizer_name):
+        return{
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'short_description': self.short_description,
+            'organizer_id': self.organizer_id,
+            'organizer_name': organizer_name,
+            'location': self.location,
+            'start_time': self.start_time,
+            'end_time': self.end_time,
+            'capacity': self.capacity,
+            'category': self.category.value,
+            'tags': self.tags,
+            'image_url': self.image_url,
+            'is_public': self.is_public,
+            'is_virtual': self.is_virtual,
+            'is_recurring': self.is_recurring,
+            'is_free': self.is_free,
+            'fee': self.fee,
+            'virtual_meeting_link': self.virtual_meeting_link,
+            'status': self.status.value,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+        }
 
 
