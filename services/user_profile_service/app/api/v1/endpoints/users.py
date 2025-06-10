@@ -40,9 +40,9 @@ async def get_user_profile(
 
 
 # get user by email
-@router.get("/{user_email}", response_model=UserProfileResponse, description="Get user profile")
-async def get_user_profile(
-    user_email,
+@router.get("/email/{user_email}", response_model=UserProfileResponse, description="Get user profile")
+async def get_user_profile_by_email(
+    user_email: str,
     db: Session = Depends(get_db)
 ):
     user = db.query(UserProfile).filter(UserProfile.email == user_email).first()
