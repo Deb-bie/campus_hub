@@ -15,7 +15,7 @@ const proxyToAuthService = async (req, res, endpoint, includeAuth = false) => {
     const config = {
       method: req.method,
       url: `${AUTH_SERVICE_URL}${endpoint}`,
-      data: JSON.stringify(req.body),
+      data: req.body,
       headers: {
         'Content-Type': 'application/json'
       }
