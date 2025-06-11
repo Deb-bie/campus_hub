@@ -22,7 +22,7 @@ app.use(cors(config.cors));
 app.use(express.json());
 
 app.use('/api/events', bodyParser.json());
-
+app.use('/api/auth', bodyParser.json());
 
 // Routes
 app.use('/api/auth', authRoutes)
