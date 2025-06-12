@@ -93,5 +93,88 @@ def create_event():
         )
 
 
+@event_blueprint.route("/edit/<uuid:event_id>", methods=["PUT"])
+def edit_event(event_id):
+    try:
+        user_email = request.headers.get('x-user-email')
+        auth_header = request.headers.get("Authorization")
+        token = auth_header.replace("Bearer ", "")
+
+        data = request.get_json()
+        event:Event = Event.query.get(event_id)
+
+        if not event:
+            return jsonify(
+                {
+                    "error": "Event does not exist"
+                }
+            ), 404
+        
+        if not data:
+            return jsonify(
+                {
+                    "error": "Invalid or missing data"
+                }
+            ), 400
+        
+        if not user_email or not auth_header:
+            return jsonify(
+                {
+                    "error": "Unauthorized - Missing headers"        
+                }
+            ), 401
+        
+        
+        user_info = get_user_by_email(user_email, token)
+        organizer_id = user_info.get("user_id")
+
+        if organizer_id != event.organizer_id:
+            return jsonify(
+                {
+                    'error': "This user does not have permission to update this event"
+                }
+            )
+
+        organizer_first_name = user_info.get("first_name")
+        organizer_last_name = user_info.get("last_name")
+        organizer_name = organizer_first_name + " " + organizer_last_name
+
+        event.name = data.get("name", event.name)
+        event.description = data.get("description", event.description)
+        event.short_description = data.get("short_description", event.short_description)
+        event.location = data.get("location", event.location)
+        event.start_time = data.get("start_time", event.start_time)
+        event.end_time = data.get("end_time", event.end_time)
+        event.category = data.get("category", event.category)
+        event.image_url = data.get("image_url", event.image_url)
+        event.capacity = data.get("capacity", event.capacity)
+        event.tags = data.get("tags", event.tags)
+        event.is_public = data.get("is_public", event.is_public)
+        event.is_virtual = data.get("is_virtual", event.is_virtual)
+        event.is_recurring = data.get("is_recurring", event.is_recurring)
+        event.is_free = data.get("is_free", event.is_free)
+        event.fee = data.get("fee", event.fee)
+        event.virtual_meeting_link = data.get("virtual_meeting_link", event.virtual_meeting_link)
+        event.status = data.get("status", event.status)
+
+
+        db.session.commit()
+
+        return jsonify(
+            {
+                'message': "successful",
+                'result': event.to_json_with_organizer(organizer_name),
+                'status_code': 210
+            }
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify (
+            {
+                'error': str(e),
+                'status_code': 400
+            }
+        )
 
 
