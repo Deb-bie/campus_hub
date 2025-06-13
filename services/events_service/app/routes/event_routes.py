@@ -5,6 +5,7 @@ from ..services.user_profile_service import get_user_by_email
 
 # blueprint
 event_blueprint = Blueprint("event", __name__, url_prefix="/api/events")
+event_blueprint.strict_slashes = False
 
 # create event
 @event_blueprint.route("/create", methods=["POST"])
@@ -235,3 +236,30 @@ def delete_event(event_id):
                 'status_code': 400
             }
         )
+
+
+@event_blueprint.route("/feed/", methods=["GET"])
+def get_all_events():
+    try:
+        events = Event.query.all()
+        events_data = []
+
+        for event in events:
+            events_data.append(
+                event.to_json()
+            )
+
+        return jsonify(events_data)
+ 
+
+    except Exception as e:
+        return jsonify (
+            {
+                'error': str(e),
+                'status_code': 400
+            }
+        )
+
+
+
+
