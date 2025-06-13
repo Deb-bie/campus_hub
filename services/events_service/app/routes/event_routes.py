@@ -164,7 +164,7 @@ def edit_event(event_id):
             {
                 'message': "successful",
                 'result': event.to_json_with_organizer(organizer_name),
-                'status_code': 210
+                'status_code': 201
             }
         )
 
@@ -178,3 +178,60 @@ def edit_event(event_id):
         )
 
 
+
+@event_blueprint.route("/delete/<uuid:event_id>", methods=["DELETE"])
+def delete_event(event_id):
+    try:
+        user_email = request.headers.get('x-user-email')
+        auth_header = request.headers.get("Authorization")
+        token = auth_header.replace("Bearer ", "")
+
+        event:Event = Event.query.get(event_id)
+
+        if not event:
+            return jsonify(
+                {
+                    "error": "Event does not exist"
+                }
+            ), 404
+        
+        
+        if not user_email or not auth_header:
+            return jsonify(
+                {
+                    "error": "Unauthorized - Missing headers"        
+                }
+            ), 401
+        
+        
+        user_info = get_user_by_email(user_email, token)
+        organizer_id = user_info.get("user_id")
+        print("organizer id: ", organizer_id)
+        print("organizer_id from event: ", event.organizer_id)
+
+        if organizer_id != str(event.organizer_id):
+            return jsonify(
+                {
+                    'error': "This user does not have permission to delete this event"
+                }, 403
+            )
+        
+        db.session.delete(event)
+        db.session.commit()
+
+        return jsonify(
+            {
+                'message': "successful",
+                'result': "Event deleted",
+                'status_code': 200
+            }
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify (
+            {
+                'error': str(e),
+                'status_code': 400
+            }
+        )
