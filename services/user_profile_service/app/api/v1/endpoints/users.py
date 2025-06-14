@@ -22,13 +22,21 @@ async def create_user_profile(
 @router.get("/me", response_model=UserProfileResponse, description="Get current user profile")
 async def get_current_user_profile(
     current_user: UserProfile = Depends(get_current_user),
-
 ):
     return current_user
 
 
+@router.get("/all", response_model=list[UserProfileResponse], description="Get all users")
+async def get_all_users(
+    db: Session = Depends(get_db)
+):
+    users = db.query(UserProfile).all()
+    return users
+
+
+
 # get user using user id
-@router.get("/{user_id}", response_model=UserProfileResponse, description="Get user profile")
+@router.get("/id/{user_id}", response_model=UserProfileResponse, description="Get user profile")
 async def get_user_profile(
     user_id,
     db: Session = Depends(get_db)
