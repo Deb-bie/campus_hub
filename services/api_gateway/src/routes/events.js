@@ -8,24 +8,13 @@ router.use(express.urlencoded({ extended: true }));
 
 const target = process.env.EVENTS_SERVICE_URL;
 
-// No jwt urls
-router.use(
-  ['/public-feed'],
-  createProxyMiddleware({
-    target,
-    changeOrigin: true,
-    pathRewrite: { '^/events': '' },
-  })
-);
 
-// Jwt required
 router.use(
   '/',
   authenticateJWT,
   createProxyMiddleware({
     target: target,
     changeOrigin: true,
-    // selfHandleResponse: false,
 
     on: {
       proxyReq: (proxyReq, req, res) => {
@@ -100,6 +89,19 @@ router.use(
     }
 
   })
+);
+
+
+router.use(
+  '/feed',
+  createProxyMiddleware({
+    target: target,
+    changeOrigin: true,
+    pathRewrite: { 
+      '^/': 'api/events/feed/' 
+    }
+  
+  }),
 );
 
 module.exports = router;
