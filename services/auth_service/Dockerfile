@@ -2,7 +2,7 @@
 FROM gradle:8.5.0-jdk21 AS builder
 WORKDIR /app
 COPY . .
-RUN ./gradlew clean build -x test --no-daemon
+RUN ./gradlew clean bootJar -x test --no-daemon
 
 # ---- Stage 2: Create the runtime image ----
 FROM openjdk:21-jdk
