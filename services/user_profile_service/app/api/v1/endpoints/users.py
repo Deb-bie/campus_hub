@@ -69,7 +69,6 @@ async def update_user(
     auth_header = Header(..., alias='authorization')
 ):
     current_user = get_current_user(user_email, db)
-    print(current_user.user_id)
 
     if user_id != current_user.user_id:
         raise HTTPException(
@@ -129,3 +128,68 @@ async def update_user(
 
     return user_profile_update_response
 
+
+
+
+@router.delete("/delete/{user_id}", response_model=UserProfileResponse, description="Delete user profile ")
+async def delete_user(
+    user_id, 
+    db: Session = Depends(get_db),
+    user_email = Header(..., alias='x-user-email'),
+    auth_header = Header(..., alias='authorization')
+):
+    current_user = get_current_user(user_email, db)
+
+    if user_id != str(current_user.user_id):
+        raise HTTPException(
+            status_code=401, 
+            detail="Unauthorized usersssss"
+        )
+
+    if not auth_header:
+        raise HTTPException(
+            status_code=401, 
+            detail="Unauthorized - Missing headers"
+        )
+    
+    token = auth_header.replace("Bearer ", "")
+    user = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=404, 
+            detail="User not found"
+        )
+    
+
+    original_data = {
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "email": user.email,
+        "bio": user.bio
+    }
+
+    db.delete(user)
+
+    try:
+        db.commit()
+
+        auth_client = AuthServiceClient()
+        await auth_client.delete_user(user_id, token)
+
+    except Exception as e:
+        print("Auth service call failed, reverting local changes:", e)
+        
+        for field, value in original_data.items():
+            setattr(user, field, value)
+
+        db.commit()
+
+        raise HTTPException(
+            status_code=500, 
+            detail="Failed to sync with Auth Service. Local update reverted."
+        )
+
+    return {
+        "detail": "User deleted successfully"
+    }
