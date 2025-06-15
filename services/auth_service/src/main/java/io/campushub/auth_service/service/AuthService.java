@@ -3,6 +3,7 @@ package io.campushub.auth_service.service;
 import io.campushub.auth_service.config.JwtService;
 import io.campushub.auth_service.config.WebClientFactory;
 import io.campushub.auth_service.dto.requests.ProfileServiceRequestDto;
+import io.campushub.auth_service.dto.requests.ProfileServiceUpdateDto;
 import io.campushub.auth_service.dto.requests.SignInRequestDto;
 import io.campushub.auth_service.dto.requests.SignUpRequestDto;
 import io.campushub.auth_service.dto.responses.ResponseHandler;
@@ -174,6 +175,29 @@ public class AuthService {
                         .build()
                 );
 
+    }
+
+    public ResponseEntity<ResponseHandler<String>> updateUserDetails(UUID auth_id, ProfileServiceUpdateDto profileServiceUpdateDto) throws Exception {
+        Optional<AuthUser> authUser = authRepository.findById(auth_id);
+        if (authUser.isPresent()) {
+            AuthUser user = authUser.get();
+            user.setFirstName(profileServiceUpdateDto.getFirst_name());
+            user.setLastName(profileServiceUpdateDto.getLast_name());
+            user.setEmail(profileServiceUpdateDto.getEmail());
+
+            authRepository.save(user);
+        } else {
+            throw new NotFoundException("User does not Exist");
+        }
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ResponseHandler
+                        .<String>builder()
+                        .status(HttpStatus.OK)
+                        .statusCode(HttpStatus.OK.value())
+                        .message("successful")
+                        .build()
+                );
     }
 
     public boolean validateEmail(String email) {
