@@ -68,9 +68,17 @@ async def update_user(
     user_email = Header(..., alias='x-user-email'),
     auth_header = Header(..., alias='authorization')
 ):
+    current_user = get_current_user(user_email, db)
+    print(current_user.user_id)
+
+    if user_id != current_user.user_id:
+        raise HTTPException(
+            status_code=401, 
+            detail="Unauthorized user"
+        )
 
     if not auth_header:
-        return HTTPException(
+        raise HTTPException(
             status_code=401, 
             detail="Unauthorized - Missing headers"
         )
