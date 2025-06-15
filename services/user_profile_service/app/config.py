@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     DATABASE__NAME: str
     JWT__SECRET__KEY: str
     PORT: int
+    API_GATEWAY: str
     ENV: str ="development"
 
 
