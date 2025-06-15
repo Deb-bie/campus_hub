@@ -13,6 +13,9 @@ class UserProfileCreate(UserProfileBase):
     user_id: UUID
 
 
+class UserProfileUpdate(UserProfileBase):
+    bio: str
+
 
 class UserProfileResponse(UserProfileBase):
     user_id: UUID
