@@ -200,6 +200,26 @@ public class AuthService {
                 );
     }
 
+
+    public ResponseEntity<ResponseHandler<String>> deleteUserDetails(UUID auth_id) throws Exception {
+        Optional<AuthUser> authUser = authRepository.findById(auth_id);
+        if (authUser.isPresent()) {
+            AuthUser user = authUser.get();
+            authRepository.delete(user);
+        } else {
+            throw new NotFoundException("User does not Exist");
+        }
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ResponseHandler
+                        .<String>builder()
+                        .status(HttpStatus.OK)
+                        .statusCode(HttpStatus.OK.value())
+                        .message("deleted successfully")
+                        .build()
+                );
+    }
+
     public boolean validateEmail(String email) {
         return email.endsWith(".edu");
     }

@@ -52,4 +52,13 @@ public class AuthController {
         return this.authService.updateUserDetails(auth_id, profileServiceUpdateDto);
     }
 
+    @Operation(summary = "delete user details")
+    @ApiResponse(responseCode = "200", description = "deleted successfully")
+    @PutMapping("/delete/{auth_id}")
+    public ResponseEntity<ResponseHandler<String>> deleteUserDetails(
+            @PathVariable("auth_id") UUID auth_id
+    ) throws Exception {
+        return this.authService.deleteUserDetails(auth_id);
+    }
+
 }

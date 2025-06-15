@@ -42,9 +42,25 @@ router.use(
             console.error('Cannot set user headers - no email found');
             res.status(401).json({ error: 'Invalid token: missing user email' });
           }
-        } else {
+        } 
+
+        else if (['DELETE'].includes(req.method.toUpperCase())) {
           if (userEmail) {
-            console.log("Proxying to events service: Headers set ", {
+            console.log("Proxying to user profile service: Headers set ", {
+              target: target
+            })
+            proxyReq.setHeader('Content-Type', 'application/json');
+            proxyReq.setHeader('x-user-email', userEmail);
+            proxyReq.setHeader('authorization', req.headers.authorization)
+          } else{
+            console.error('Cannot set user headers - no email found');
+            res.status(401).json({ error: 'Invalid token: missing user email' });
+          }
+        } 
+        
+        else {
+          if (userEmail) {
+            console.log("Proxying to user profile service: Headers set ", {
               target: target
             })
             proxyReq.setHeader('x-user-email', userEmail);
