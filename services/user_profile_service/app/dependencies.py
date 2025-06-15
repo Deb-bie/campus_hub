@@ -15,7 +15,7 @@ def get_db():
 
 
 def get_current_user(
-        x_user_email: str = Header(...),
+        x_user_email: str = Header(..., alias="x-user-email"),
         db: Session = Depends(get_db)
 ) -> UserProfile:    
     user = db.query(UserProfile).filter(UserProfile.email == x_user_email).first()

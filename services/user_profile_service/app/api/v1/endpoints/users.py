@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, Header # type: ignore
 from app.crud.users import CrudUser
 from app.dependencies import get_current_user, get_db
-from app.schemas.user import UserProfileCreate, UserProfileResponse
+from app.schemas.user import UserProfileCreate, UserProfileResponse, UserProfileUpdate
 from app.models.user import UserProfile
+from app.clients.auth_service_client import AuthServiceClient
 from sqlalchemy.orm import Session # type: ignore
 
 router = APIRouter()
@@ -36,7 +37,7 @@ async def get_all_users(
 
 
 # get user using user id
-@router.get("/id/{user_id}", response_model=UserProfileResponse, description="Get user profile")
+@router.get("/id/{user_id}", response_model=UserProfileResponse, description="Get user profile by id")
 async def get_user_profile(
     user_id,
     db: Session = Depends(get_db)
@@ -48,7 +49,7 @@ async def get_user_profile(
 
 
 # get user by email
-@router.get("/email/{user_email}", response_model=UserProfileResponse, description="Get user profile")
+@router.get("/email/{user_email}", response_model=UserProfileResponse, description="Get user profile by email")
 async def get_user_profile_by_email(
     user_email: str,
     db: Session = Depends(get_db)
@@ -57,3 +58,66 @@ async def get_user_profile_by_email(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+
+@router.put("/update/{user_id}", response_model=UserProfileResponse, description="Update user profile ")
+async def update_user(
+    user_id, 
+    user_in: UserProfileUpdate, 
+    db: Session = Depends(get_db),
+    user_email = Header(..., alias='x-user-email'),
+    auth_header = Header(..., alias='authorization')
+):
+
+    if not auth_header:
+        return HTTPException(
+            status_code=401, 
+            detail="Unauthorized - Missing headers"
+        )
+    
+    token = auth_header.replace("Bearer ", "")
+    user = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=404, 
+            detail="User not found"
+        )
+    
+    # Backup old data before update, for potential rollback
+    original_data = {
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "email": user.email,
+        "bio": user.bio
+    }
+
+    update_data = user_in.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(user, field, value)
+
+    try:
+        db.commit()
+        db.refresh(user)
+
+        user_profile_update_response= UserProfileResponse.from_orm(user)
+        data = user_profile_update_response.model_dump(mode="json")
+
+        auth_client = AuthServiceClient()
+        await auth_client.update_user(user_id, data, token)
+
+    except Exception as e:
+        print("Auth service call failed, reverting local changes:", e)
+        
+        for field, value in original_data.items():
+            setattr(user, field, value)
+
+        db.commit()
+
+        raise HTTPException(
+            status_code=500, 
+            detail="Failed to sync with Auth Service. Local update reverted."
+        )
+
+    return user_profile_update_response
+
