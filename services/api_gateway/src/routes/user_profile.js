@@ -1,56 +1,57 @@
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const express = require('express');
-
 const { authenticateJWT} = require('../middlewares/auth_middleware');
-
 const router = express.Router();
-
-// Middleware to parse JSON bodies (important for proxy)
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
+const target = process.env.USER_PROFILE_SERVICE_URL;
 
-
-// Test endpoint to verify auth is working
-router.get('/test-auth', authenticateJWT, (req, res) => {
-  res.json({
-    message: 'Auth working',
-    user: req.user,
-    timestamp: new Date().toISOString()
-  });
-});
-
-
-
-// User Profile Service Proxy
 router.use(
   '/',
   authenticateJWT,
   createProxyMiddleware({
-    target: process.env.USER_PROFILE_SERVICE_URL,
+    target: target,
     changeOrigin: true,
 
-    selfHandleResponse: false,
-
     on: {
-
       proxyReq: (proxyReq, req, res) => {
         let userEmail = null;
         
         if (req.user) {
           userEmail = req.user.sub;
-          proxyReq.setHeader('x-user-email', userEmail);
-        } else {
+        } else{
           console.error('CRITICAL: No user email found in token');
           console.error('Available user fields:', Object.keys(req.user || {}));
           console.error('Full req.user object:', req.user);
           console.error('Proceeding with proxy but service will likely reject...');
-          console.error('Cannot set user headers - no email found');
-          res.status(401).json({ error: 'Invalid token: missing user email' });
         }
-    
-        if (req.headers.authorization) {
-          proxyReq.setHeader('authorization', req.headers.authorization);
+      
+        if (['POST', 'PUT', 'PATCH'].includes(req.method.toUpperCase())) {
+          const bodyData = JSON.stringify(req.body);
+          if (bodyData && userEmail) {
+            console.log("Proxying to user profile service: Headers set ", {
+              target: target
+            })
+
+            proxyReq.setHeader('Content-Type', 'application/json');
+            proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+            proxyReq.setHeader('x-user-email', userEmail);
+            proxyReq.setHeader('authorization', req.headers.authorization)
+            proxyReq.write(bodyData);
+          } else{
+            console.error('Cannot set user headers - no email found');
+            res.status(401).json({ error: 'Invalid token: missing user email' });
+          }
+        } else {
+          if (userEmail) {
+            console.log("Proxying to events service: Headers set ", {
+              target: target
+            })
+            proxyReq.setHeader('x-user-email', userEmail);
+            proxyReq.setHeader('authorization', req.headers.authorization)
+          } 
         }
+        
       },
 
       error: (err, req, res) => {
@@ -74,9 +75,18 @@ router.use(
     },
 
     pathRewrite: {
-      '^/user-profile': '', // Remove /user-profile prefix
+      '^/user-profile': '',
     }
   }),
 );
+
+// Test endpoint to verify auth is working
+router.get('/test-auth', authenticateJWT, (req, res) => {
+  res.json({
+    message: 'Auth working',
+    user: req.user,
+    timestamp: new Date().toISOString()
+  });
+});
 
 module.exports = router;
