@@ -28,3 +28,6 @@ services/auth_service/src/main/resources/application-docker.properties
 # events
 services/events_service/venv
 services/events_service/.env.docker
+
+# logging 
+services/logging_service/venv
