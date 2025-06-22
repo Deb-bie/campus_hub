@@ -31,3 +31,7 @@ services/events_service/.env.docker
 
 # logging 
 services/logging_service/venv
+services/logging_service/.env
+services/logging_service/.env.dev
+services/logging_service/.env.docker
+services/logging_service/.env.prod
