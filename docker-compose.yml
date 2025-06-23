@@ -10,6 +10,7 @@ services:
     depends_on:
       - postgres
       - user-profile-service
+      - kafka
     container_name: campushub_auth
 
 
@@ -54,6 +55,51 @@ services:
       - api-gateway
     container_name: campushub_events
   
+  logging-service:
+    build:
+      context: ./services/logging_service
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    env_file:
+      - ./services/logging_service/.env.docker
+    depends_on:
+      - kafka
+      - mongodb
+    container_name: campushub_logging_service
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+    container_name: zookeeper
+
+  kafka:
+    image: confluentinc/cp-kafka:7.2.1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+    container_name: kafka
+
+  mongodb:
+    image: mongo:latest
+    container_name: campushub_mongodb
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGODB_USERNAME=${MONGODB_USERNAME}
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+      - MONGO_DATABASE=${MONGODB_DB}
   
   postgres:
     image: postgres:17
@@ -70,5 +116,6 @@ services:
 
 volumes:
   postgres_data:
+  mongodb_data:
 
 
