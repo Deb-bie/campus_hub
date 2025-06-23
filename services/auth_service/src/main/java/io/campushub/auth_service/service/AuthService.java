@@ -12,6 +12,7 @@ import io.campushub.auth_service.enums.AuthStatus;
 import io.campushub.auth_service.exceptions.AlreadyExistsException;
 import io.campushub.auth_service.exceptions.NotFoundException;
 import io.campushub.auth_service.exceptions.SchoolAccountException;
+import io.campushub.auth_service.kafka.LogProducer;
 import io.campushub.auth_service.repository.AuthRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +40,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private  WebClient webClient;
     private final WebClientFactory webClientFactory;
+    private final LogProducer logProducer;
 
     @Value("${campushub.services.user-profile-service}")
     private String profileServiceUrl;
@@ -48,13 +50,15 @@ public class AuthService {
             AuthenticationManager authenticationManager,
             JwtService jwtService,
             PasswordEncoder passwordEncoder,
-            WebClientFactory webClientFactory
+            WebClientFactory webClientFactory,
+            LogProducer logProducer
     ) {
         this.authRepository = authRepository;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.webClientFactory = webClientFactory;
+        this.logProducer = logProducer;
     }
 
     @PostConstruct
@@ -83,6 +87,7 @@ public class AuthService {
                     .last_login(new Timestamp(System.currentTimeMillis()))
                     .build();
             authRepository.save(authUser);
+            logProducer.emitAuthUserSignUpLog(authUser.getAuth_id().toString(), authUser.getEmail());
 
             ProfileServiceRequestDto profileServiceRequestDto = new ProfileServiceRequestDto();
             profileServiceRequestDto.setUser_id(authUser.getAuth_id());
@@ -101,6 +106,7 @@ public class AuthService {
             SecurityContextHolder.getContext().setAuthentication(auth);
             UserDetails userDetails = (UserDetails) auth.getPrincipal();
             jwt = jwtService.generateToken(userDetails);
+            logProducer.emitAuthUserSignInLog(authUser.getAuth_id().toString(), authUser.getEmail());
 
         }
         else{
@@ -137,6 +143,7 @@ public class AuthService {
             authUser.setLast_login(new Timestamp(System.currentTimeMillis()));
             authUser.setAuthStatus(AuthStatus.ACTIVE);
             authRepository.save(authUser);
+            logProducer.emitAuthUserSignInLog(authUser.getAuth_id().toString(), authUser.getEmail());
 
 
         } else {
@@ -186,6 +193,7 @@ public class AuthService {
             user.setEmail(profileServiceUpdateDto.getEmail());
 
             authRepository.save(user);
+            logProducer.emitAuthUserUpdateLog(user.getAuth_id().toString(), user.getEmail());
         } else {
             throw new NotFoundException("User does not Exist");
         }
