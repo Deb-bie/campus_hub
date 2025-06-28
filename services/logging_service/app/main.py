@@ -6,9 +6,17 @@ from app.config import settings
 from app.db.db import collection
 from app.services.consumer import start_consumer_thread
 from app.api.router.api_router import router as api_router
+import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    print("=== ENVIRONMENT VARIABLES ===")
+    print(f"ENV: {os.getenv('ENV')}")
+    print(f"KAFKA_BROKER: {os.getenv('KAFKA_BROKER')}")
+    print(f"KAFKA_TOPICS: {os.getenv('KAFKA_TOPICS')}")
+    print(f"PORT: {os.getenv('PORT')}")
+    print("=============================")
+
     # Startup logic
     start_consumer_thread()
     yield
