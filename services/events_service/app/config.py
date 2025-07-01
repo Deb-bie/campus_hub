@@ -8,4 +8,14 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv('DB_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Elasticsearch configuration
+    ELASTICSEARCH_HOST = os.getenv('ELASTICSEARCH_HOST')
+    ELASTICSEARCH_PORT = int(os.getenv('ELASTICSEARCH_PORT'))
+    ELASTICSEARCH_SCHEME = os.getenv('ELASTICSEARCH_SCHEME')
+    ELASTICSEARCH_INDEX = os.getenv('ELASTICSEARCH_INDEX')
+    
+    # Pagination defaults
+    DEFAULT_PAGE_SIZE = int(os.getenv('DEFAULT_PAGE_SIZE', 10))
+    MAX_PAGE_SIZE = int(os.getenv('MAX_PAGE_SIZE', 100))
+
 config = Config()
