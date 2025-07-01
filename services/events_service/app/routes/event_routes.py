@@ -1,23 +1,33 @@
 from flask import Blueprint, request, jsonify # type: ignore
+from app.utils.validators import validate_event_data # type: ignore
+from app.services.elasticsearch_service import ElasticsearchService
+from app.utils.exceptions import SearchServiceError, ValidationError
 from ..utils.db import db
 from ..models.event_model import Event
 from ..services.user_profile_service import get_user_by_email
+import logging
 
 # blueprint
 event_blueprint = Blueprint("event", __name__, url_prefix="/api/events")
 event_blueprint.strict_slashes = False
+
+logger = logging.getLogger(__name__)
+
 
 
 
 # create event
 @event_blueprint.route("/create", methods=["POST"])
 def create_event():
+    """Create a new event"""
 
     try:
         data = request.get_json()
 
         if not data:
             return jsonify({"error": "Invalid or missing JSON body"}), 400
+        
+        validate_event_data(data)
 
         user_email = request.headers.get('x-user-email')
         auth_header = request.headers.get("Authorization")
@@ -78,6 +88,9 @@ def create_event():
         db.session.add(event)
         db.session.commit()
 
+        # Save to Elasticsearch
+        saved_product = ElasticsearchService.save_event(event)
+
         return jsonify(
             {
                 'message': "successful",
@@ -86,14 +99,32 @@ def create_event():
             }
         )
     
+    except ValidationError as e:
+        db.session.rollback()
+        return jsonify(
+            {
+                'error': str(e)
+            }
+        ), 400
+    
+    except SearchServiceError as e:
+        db.session.rollback()
+        logger.error(f"Search service error: {e}")
+        return jsonify(
+            {
+                'error': 'Failed to create event'
+            }
+        ), 500
+    
     except Exception as e:
         db.session.rollback()
-        return jsonify (
+        logger.error(f"Unexpected error: {e}")
+        return jsonify(
             {
-                'error': str(e),
-                'status_code': 400
+                'error': f'Internal server error: {e}'
             }
-        )
+        ), 500
+
 
 
 @event_blueprint.route("/edit/<uuid:event_id>", methods=["PUT"])

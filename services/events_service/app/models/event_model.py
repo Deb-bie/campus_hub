@@ -52,7 +52,7 @@ class Event(db.Model):
     )
 
     image_url = db.Column(
-        db.String(500)
+        db.String(5000)
     )
 
     capacity = db.Column(
