@@ -91,7 +91,7 @@ def create_event():
         db.session.commit()
 
         # Save to Elasticsearch
-        saved_product = ElasticsearchService.save_event(event)
+        # saved_product = ElasticsearchService.save_event(event)
 
         return jsonify(
             {
@@ -222,6 +222,16 @@ def delete_event(event_id):
         auth_header = request.headers.get("Authorization")
         token = auth_header.replace("Bearer ", "")
 
+        if not user_email or not auth_header:
+            return jsonify(
+                {
+                    "error": "Unauthorized - Missing headers"        
+                }
+            ), 401
+        
+        user_info = get_user_by_email(user_email, token)
+        organizer_id = user_info.get("user_id")
+
         event:Event = Event.query.get(event_id)
 
         if not event:
@@ -231,29 +241,21 @@ def delete_event(event_id):
                 }
             ), 404
         
-        
-        if not user_email or not auth_header:
-            return jsonify(
-                {
-                    "error": "Unauthorized - Missing headers"        
-                }
-            ), 401
-        
-        
-        user_info = get_user_by_email(user_email, token)
-        organizer_id = user_info.get("user_id")
-        print("organizer id: ", organizer_id)
-        print("organizer_id from event: ", event.organizer_id)
-
-        if organizer_id != str(event.organizer_id):
+        if str(organizer_id) != str(event.organizer_id):
             return jsonify(
                 {
                     'error': "This user does not have permission to delete this event"
                 }, 403
             )
-        
+    
         db.session.delete(event)
         db.session.commit()
+
+        cache_key = f"event:{event_id}"
+        cached = redis_client.redis_client.get(cache_key)
+
+        if cached:
+            redis_client.redis_client.delete(cache_key)
 
         return jsonify(
             {
@@ -301,9 +303,7 @@ def get_all_events():
 def get_an_event(event_id):
     try:
         cache_key = f"event:{event_id}"
-        print(cache_key)
 
-        # try redis cache
         cached = redis_client.redis_client.get(cache_key)
         if cached:
             print("From Redis cache")
