@@ -196,6 +196,12 @@ def edit_event(event_id):
 
         db.session.commit()
 
+        cache_key = f"event:{event_id}"
+        cached = redis_client.redis_client.get(cache_key)
+
+        if cached:
+            redis_client.redis_client.delete(cache_key)
+
         return jsonify(
             {
                 'message': "successful",
