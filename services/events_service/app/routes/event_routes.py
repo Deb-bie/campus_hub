@@ -2,10 +2,12 @@ from flask import Blueprint, request, jsonify # type: ignore
 from app.utils.validators import validate_event_data # type: ignore
 from app.services.elasticsearch_service import ElasticsearchService
 from app.utils.exceptions import SearchServiceError, ValidationError
+from app import redis_client
 from ..utils.db import db
 from ..models.event_model import Event
 from ..services.user_profile_service import get_user_by_email
 import logging
+import json
 
 # blueprint
 event_blueprint = Blueprint("event", __name__, url_prefix="/api/events")
@@ -298,7 +300,19 @@ def get_all_events():
 @event_blueprint.route("/feed/<uuid:event_id>", methods=["GET"])
 def get_an_event(event_id):
     try:
+        cache_key = f"event:{event_id}"
+        print(cache_key)
+
+        # try redis cache
+        cached = redis_client.redis_client.get(cache_key)
+        if cached:
+            print("From Redis cache")
+            return jsonify(cached)
+
         event = Event.query.get(event_id)
+        json_string = json.dumps(event.to_json())
+        redis_client.redis_client.setex(cache_key, 3600, json_string)
+
         return jsonify(event.to_json())
  
 
