@@ -6,13 +6,11 @@ def validate_event_data(data):
     if not data:
         raise ValidationError("Request body is required")
     
-    required_fields = ['name', 'description', 'short_description', 'organizer_id', 'location', 'start_time', 'end_time', 'category', 'image_url', 'capacity', 'is_public', 'is_virtual', 'is_recurring', 'is_free', 'virtual_meeting_link', 'tags', 'status', 'fee']
+    required_fields = ['name', 'description', 'short_description',  'location', 'start_time', 'end_time', 'category', 'image_url', 'capacity', 'is_public', 'is_virtual', 'is_recurring', 'is_free', 'virtual_meeting_link', 'tags', 'status', 'fee']
 
     for field in required_fields:
         if field not in data:
             raise ValidationError(f"Missing required field: {field}")
-        if not data[field]:
-            raise ValidationError(f"Field {field} cannot be empty")
 
     
     # Validate string lengths

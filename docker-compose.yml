@@ -1,4 +1,11 @@
 services:
+  redis:
+    image: redis:7
+    container_name: campushub_redis
+    ports:
+      - "6379:6379" 
+    restart: always
+
   auth-service:
     build: 
       context: ./services/auth_service
@@ -51,6 +58,7 @@ services:
     depends_on:
       - postgres
       - api-gateway
+      - redis
     container_name: campushub_events
   
   logging-service:
