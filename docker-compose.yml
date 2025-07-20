@@ -30,7 +30,6 @@ services:
       - ./services/user_profile_service/.env.docker
     depends_on:
       - postgres
-      - redis
     container_name: campushub_user_profile
 
   api-gateway:
