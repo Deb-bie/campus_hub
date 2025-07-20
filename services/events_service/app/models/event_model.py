@@ -109,14 +109,14 @@ class Event(db.Model):
     
     def to_json(self):
         return{
-            'id': self.id,
+            'id': str(self.id),
             'name': self.name,
             'description': self.description,
             'short_description': self.short_description,
-            'organizer_id': self.organizer_id,
+            'organizer_id': str(self.organizer_id),
             'location': self.location,
-            'start_time': self.start_time,
-            'end_time': self.end_time,
+            'start_time':str(self.start_time),
+            'end_time': str(self.end_time),
             'capacity': self.capacity,
             'category': self.category.value,
             'tags': self.tags,
@@ -128,22 +128,22 @@ class Event(db.Model):
             'fee': self.fee,
             'virtual_meeting_link': self.virtual_meeting_link,
             'status': self.status.value,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at
+            'created_at': str(self.created_at),
+            'updated_at': str(self.updated_at)
         }
     
 
     def to_json_with_organizer(self, organizer_name):
         return{
-            'id': self.id,
+            'id': str(self.id),
             'name': self.name,
             'description': self.description,
             'short_description': self.short_description,
-            'organizer_id': self.organizer_id,
+            'organizer_id': str(self.organizer_id),
             'organizer_name': organizer_name,
             'location': self.location,
-            'start_time': self.start_time,
-            'end_time': self.end_time,
+            'start_time':str(self.start_time),
+            'end_time': str(self.end_time),
             'capacity': self.capacity,
             'category': self.category.value,
             'tags': self.tags,
@@ -155,8 +155,8 @@ class Event(db.Model):
             'fee': self.fee,
             'virtual_meeting_link': self.virtual_meeting_link,
             'status': self.status.value,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at
+            'created_at': str(self.created_at),
+            'updated_at': str(self.updated_at)
         }
 
 
