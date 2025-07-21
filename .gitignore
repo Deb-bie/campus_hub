@@ -35,3 +35,9 @@ services/logging_service/.env
 services/logging_service/.env.dev
 services/logging_service/.env.docker
 services/logging_service/.env.prod
+
+# search 
+services/search_service/node_modules
+services/search_service/.env.dev
+services/search_service/.env.docker
+services/search_service/.env.prod
