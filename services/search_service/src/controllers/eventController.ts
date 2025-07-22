@@ -23,6 +23,22 @@ class EventsController {
         }   
     }
 
+    async updateEventInElastic(event: Event) {
+        try {
+            await client.update(
+                {
+                    index: process.env.ELASTICSEARCH_INDEX!,
+                    id: event.id,
+                    doc: event
+                }
+            );
+            logger.info(`Event updated with ID: ${event.id}`);
+        } catch (error) {
+            logger.error('Error updating event in Elasticsearch', error);
+            throw error;
+        }
+    }
+
 }
 
 export default new EventsController()
