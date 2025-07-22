@@ -250,6 +250,8 @@ def delete_event(event_id):
         db.session.delete(event)
         db.session.commit()
 
+        publisher.publish_event("event_deleted", "Existing event deleted", event.to_json())
+
         cache_key = f"event:{event_id}"
         cached = redis_client.redis_client.get(cache_key)
 
