@@ -118,7 +118,7 @@ class Event(db.Model):
             'start_time':str(self.start_time),
             'end_time': str(self.end_time),
             'capacity': self.capacity,
-            'category': self.category.value,
+            'category': str(self.category.value),
             'tags': self.tags,
             'image_url': self.image_url,
             'is_public': self.is_public,
@@ -127,7 +127,7 @@ class Event(db.Model):
             'is_free': self.is_free,
             'fee': self.fee,
             'virtual_meeting_link': self.virtual_meeting_link,
-            'status': self.status.value,
+            'status': str(self.status.value),
             'created_at': str(self.created_at),
             'updated_at': str(self.updated_at)
         }

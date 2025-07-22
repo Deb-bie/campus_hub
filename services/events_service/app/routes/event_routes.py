@@ -3,6 +3,7 @@ from app.utils.validators import validate_event_data # type: ignore
 from app.services.elasticsearch_service import ElasticsearchService
 from app.utils.exceptions import SearchServiceError, ValidationError
 from app import redis_client
+from app.kafka import publisher
 from ..utils.db import db
 from ..models.event_model import Event
 from ..services.user_profile_service import get_user_by_email
@@ -90,8 +91,7 @@ def create_event():
         db.session.add(event)
         db.session.commit()
 
-        # Save to Elasticsearch
-        # saved_product = ElasticsearchService.save_event(event)
+        publisher.publish_event("event_created", event.to_json())
 
         return jsonify(
             {
