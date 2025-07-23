@@ -39,6 +39,22 @@ class EventsController {
         }
     }
 
+    async deleteEventInElastic (eventId: string) {
+        try {
+            await client.delete(
+                {
+                    index: process.env.ELASTICSEARCH_INDEX!,
+                    id: eventId,
+                }
+            );
+
+            logger.info(`Event deleted from Elasticsearch with ID: ${eventId}`);
+        } catch (error) {
+            logger.error('Error deleting event from Elasticsearch', error);
+            throw error;
+        }
+    }
+
 }
 
 export default new EventsController()
