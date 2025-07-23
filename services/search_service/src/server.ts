@@ -7,6 +7,7 @@ import logger from './utils/logger'
 import routes from './routes/index'
 import errorHandler from './middleware/errorHandler'
 import { loadEnv } from './config/config';
+import { startConsumer } from './config/kafka_consumer';
 
 
 dotenv.config();
@@ -48,4 +49,5 @@ app.use('*', (req, res) => {
 app.listen(PORT, () => {
   logger.info(`Search service running on port ${PORT}`);
   logger.info(`Environment: ${process.env.ENV}`);
+  startConsumer();
 });

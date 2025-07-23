@@ -8,13 +8,13 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode("utf-8")
 )
 
-def publish_event(event_type, payload):
+def publish_event(event_type, message, payload):
     message = {
         "timestamp": datetime.now().isoformat(),
         "service_name": "events_service",
         "log_level": "INFO",
         "type": event_type,
-        "message": 'New event created',
+        "message": message,
         "metadata": payload
 
     }

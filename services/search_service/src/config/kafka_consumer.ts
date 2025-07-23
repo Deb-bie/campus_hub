@@ -31,14 +31,14 @@ export const startConsumer = async () => {
 
     await consumer.subscribe(
         { 
-            topic: 'event_updated_topic', 
+            topic: 'event_updated', 
             fromBeginning: true 
         }
     );
     
     await consumer.subscribe(
         { 
-            topic: 'event_deleted_topic', 
+            topic: 'event_deleted', 
             fromBeginning: true 
         }
     );
@@ -50,7 +50,11 @@ export const startConsumer = async () => {
 
             if (topic === 'event_created') {
                 await eventController.indexEventToElastic(payload.metadata)
-            } 
+            } else if (topic === 'event_updated') {
+                await eventController.updateEventInElastic(payload.metadata)
+            } else if (topic === 'event_deleted') {
+                await eventController.deleteEventInElastic(payload.metadata.id)
+            }
         }
     });
 };

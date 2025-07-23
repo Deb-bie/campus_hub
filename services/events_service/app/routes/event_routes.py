@@ -91,7 +91,7 @@ def create_event():
         db.session.add(event)
         db.session.commit()
 
-        publisher.publish_event("event_created", event.to_json())
+        publisher.publish_event("event_created", "New event created", event.to_json())
 
         return jsonify(
             {
@@ -108,15 +108,6 @@ def create_event():
                 'error': str(e)
             }
         ), 400
-    
-    except SearchServiceError as e:
-        db.session.rollback()
-        logger.error(f"Search service error: {e}")
-        return jsonify(
-            {
-                'error': 'Failed to create event'
-            }
-        ), 500
     
     except Exception as e:
         db.session.rollback()
@@ -164,7 +155,7 @@ def edit_event(event_id):
         user_info = get_user_by_email(user_email, token)
         organizer_id = user_info.get("user_id")
 
-        if organizer_id != event.organizer_id:
+        if str(organizer_id) != str(event.organizer_id):
             return jsonify(
                 {
                     'error': "This user does not have permission to update this event"
@@ -195,6 +186,8 @@ def edit_event(event_id):
 
 
         db.session.commit()
+
+        publisher.publish_event("event_updated", "Existing event updated", event.to_json())
 
         cache_key = f"event:{event_id}"
         cached = redis_client.redis_client.get(cache_key)
@@ -256,6 +249,8 @@ def delete_event(event_id):
     
         db.session.delete(event)
         db.session.commit()
+
+        publisher.publish_event("event_deleted", "Existing event deleted", event.to_json())
 
         cache_key = f"event:{event_id}"
         cached = redis_client.redis_client.get(cache_key)

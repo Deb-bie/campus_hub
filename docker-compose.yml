@@ -133,5 +133,6 @@ services:
 volumes:
   postgres_data:
   mongodb_data:
+  elasticsearch_data:
 
 
