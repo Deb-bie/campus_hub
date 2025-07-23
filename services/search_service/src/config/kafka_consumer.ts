@@ -52,6 +52,8 @@ export const startConsumer = async () => {
                 await eventController.indexEventToElastic(payload.metadata)
             } else if (topic === 'event_updated') {
                 await eventController.updateEventInElastic(payload.metadata)
+            } else if (topic === 'event_deleted') {
+                await eventController.deleteEventInElastic(payload.metadata.id)
             }
         }
     });
