@@ -71,7 +71,7 @@ public class SecurityConfiguration {
     CorsConfigurationSource corsConfigurationSource () {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        corsConfiguration.setAllowedOrigins(List.of("*")); // For development - restrict in production
+        corsConfiguration.setAllowedOrigins(List.of("http://localhost:4200")); // For development - restrict in production
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         corsConfiguration.setAllowCredentials(true);
 
