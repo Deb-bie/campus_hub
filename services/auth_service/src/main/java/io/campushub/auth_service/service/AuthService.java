@@ -10,6 +10,7 @@ import io.campushub.auth_service.dto.responses.ResponseHandler;
 import io.campushub.auth_service.entity.AuthUser;
 import io.campushub.auth_service.enums.AuthStatus;
 import io.campushub.auth_service.exceptions.AlreadyExistsException;
+import io.campushub.auth_service.exceptions.EmailOrPasswordException;
 import io.campushub.auth_service.exceptions.NotFoundException;
 import io.campushub.auth_service.exceptions.SchoolAccountException;
 import io.campushub.auth_service.kafka.LogProducer;
@@ -130,20 +131,27 @@ public class AuthService {
         if (emailExists.isPresent()) {
             AuthUser authUser = emailExists.get();
 
-            Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            signInRequestDto.getEmail(),
-                            signInRequestDto.getPassword()
-                    )
-            );
-            SecurityContextHolder.getContext().setAuthentication(auth);
-            UserDetails userDetails = (UserDetails) auth.getPrincipal();
-            jwt = jwtService.generateToken(userDetails);
+            try {
+                Authentication auth = authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                signInRequestDto.getEmail(),
+                                signInRequestDto.getPassword()
+                        )
+                );
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                UserDetails userDetails = (UserDetails) auth.getPrincipal();
+                jwt = jwtService.generateToken(userDetails);
 
-            authUser.setLast_login(new Timestamp(System.currentTimeMillis()));
-            authUser.setAuthStatus(AuthStatus.ACTIVE);
-            authRepository.save(authUser);
-            logProducer.emitAuthUserSignInLog(authUser.getAuth_id().toString(), authUser.getEmail());
+                authUser.setLast_login(new Timestamp(System.currentTimeMillis()));
+                authUser.setAuthStatus(AuthStatus.ACTIVE);
+                authRepository.save(authUser);
+                logProducer.emitAuthUserSignInLog(authUser.getAuth_id().toString(), authUser.getEmail());
+
+            } catch (Exception e) {
+                throw new EmailOrPasswordException("Email or password is incorrect");
+            }
+
+
 
 
         } else {

@@ -43,4 +43,15 @@ public class ExceptionController {
                         .message(schoolAccountException.getMessage())
                 .build());
     }
+
+    @ExceptionHandler(EmailOrPasswordException.class)
+    public ResponseEntity<ResponseHandler> emailOrPasswordExceptionHandler (EmailOrPasswordException emailOrPasswordException) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ResponseHandler.builder()
+                        .status(HttpStatus.BAD_REQUEST)
+                        .statusCode(HttpStatus.BAD_REQUEST.value())
+                        .message(emailOrPasswordException.getMessage())
+                        .build());
+    }
 }
