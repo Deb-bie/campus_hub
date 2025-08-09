@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, request, jsonify # type: ignore
 from app.utils.validators import validate_event_data # type: ignore
 from app.services.elasticsearch_service import ElasticsearchService
@@ -15,9 +16,6 @@ event_blueprint = Blueprint("event", __name__, url_prefix="/api/events")
 event_blueprint.strict_slashes = False
 
 logger = logging.getLogger(__name__)
-
-
-
 
 # create event
 @event_blueprint.route("/create", methods=["POST"])
@@ -119,7 +117,6 @@ def create_event():
         ), 500
 
 
-
 @event_blueprint.route("/edit/<uuid:event_id>", methods=["PUT"])
 def edit_event(event_id):
     try:
@@ -211,8 +208,7 @@ def edit_event(event_id):
                 'status_code': 400
             }
         )
-
-
+    
 
 @event_blueprint.route("/delete/<uuid:event_id>", methods=["DELETE"])
 def delete_event(event_id):
@@ -315,6 +311,30 @@ def get_an_event(event_id):
         redis_client.redis_client.setex(cache_key, 3600, json_string)
 
         return jsonify(event.to_json())
+ 
+
+    except Exception as e:
+        return jsonify (
+            {
+                'error': str(e),
+                'status_code': 400
+            }
+        )
+
+
+@event_blueprint.route("/upcoming/", methods=["GET"])
+def get_all_upcoming_events():
+    today = datetime.now()
+    try:
+        events = Event.query.filter(Event.start_time >= today).order_by(Event.start_time.asc()).limit(5).all()
+        events_data = []
+
+        for event in events:
+            events_data.append(
+                event.to_json()
+            )
+
+        return jsonify(events_data)
  
 
     except Exception as e:
