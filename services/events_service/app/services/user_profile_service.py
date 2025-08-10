@@ -16,7 +16,6 @@ def get_user_by_email(user_email, token):
         return user_data
 
     except Exception as e:
-        print("please5")
         print("Exception while reading JSON:", e)
         print("Raw response:", response.text)
         return jsonify({"error": str(e)})
