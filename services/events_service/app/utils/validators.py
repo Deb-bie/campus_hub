@@ -22,6 +22,19 @@ def validate_event_data(data):
         raise ValidationError("Short description too long (max 500 characters)")
     if len(data['location']) > 500:
         raise ValidationError("Location too long (max 500 characters)")
+    
+
+def validate_rsvp_data(data):
+    """Validate rsvp creation data"""
+    if not data:
+        raise ValidationError("Request body is required")
+    
+    required_fields = ['user_id']
+
+    for field in required_fields:
+        if field not in data:
+            raise ValidationError(f"Missing required field: {field}")
+    
 
 def validate_search_params(args):
     """Validate search parameters"""
