@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify # type: ignore
 from app.utils.validators import validate_event_data # type: ignore
 from app.services.elasticsearch_service import ElasticsearchService
@@ -325,8 +325,39 @@ def get_an_event(event_id):
 @event_blueprint.route("/upcoming/", methods=["GET"])
 def get_all_upcoming_events():
     today = datetime.now()
+    start_of_week = today - timedelta(days=today.weekday())
+    start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_week = start_of_week + timedelta(days=6, hours=23, minutes=59, seconds=59)
     try:
-        events = Event.query.filter(Event.start_time >= today).order_by(Event.start_time.asc()).limit(5).all()
+        events = Event.query.filter(Event.start_time >= end_of_week).order_by(Event.start_time.asc()).limit(5).all()
+        events_data = []
+
+        for event in events:
+            events_data.append(
+                event.to_json()
+            )
+
+        return jsonify(events_data)
+ 
+
+    except Exception as e:
+        return jsonify (
+            {
+                'error': str(e),
+                'status_code': 400
+            }
+        )
+    
+
+@event_blueprint.route("/this-week/", methods=["GET"])
+def get_this_weeks_events():
+    today = datetime.now()
+    start_of_week = today - timedelta(days=today.weekday())
+    start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_week = start_of_week + timedelta(days=6, hours=23, minutes=59, seconds=59)
+    
+    try:
+        events = Event.query.filter(Event.start_time >= start_of_week ).filter(Event.start_time <= end_of_week).order_by(Event.start_time.asc()).limit(5).all()
         events_data = []
 
         for event in events:
