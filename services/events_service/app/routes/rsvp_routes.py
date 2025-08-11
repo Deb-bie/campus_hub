@@ -140,4 +140,85 @@ def get_all_rsvps_events_for_a_user(user_id):
         )
 
 
+@rsvp_blueprint.route("/<uuid:event_id>/<uuid:user_id>/rsvp", methods=["DELETE"])
+def remove_rsvp(event_id, user_id):
+    """Remove RSVP"""
+
+    try:
+        user_email = request.headers.get('x-user-email')
+        auth_header = request.headers.get("Authorization")
+
+        if not user_email or not auth_header:
+            return jsonify(
+                {
+                    "error": "Unauthorized - Missing headers"        
+                }
+            ), 401
+        
+        event = Event.query.get(event_id)
+
+        if not event:
+            return jsonify(
+                {
+                    "error": "Event not found"        
+                }
+            ), 404
+        
+        existing_rsvp = RSVP.query.filter_by(event_id=event_id, user_id=user_id).first()
+        
+        if not existing_rsvp:
+            return jsonify(
+                {
+                    "error": "This event has not been RSVPd"
+                }
+            ), 200
+
+        token = auth_header.replace("Bearer ", "")
+        user_info = get_user_by_email(user_email, token)
+
+        print("user_info: ", user_info)
+        print("user_id: ", user_id)
+
+        print(type(user_info.get('user_id')))
+        print(type(user_id))
+        
+        if (user_info.get('user_id') == str(user_id)):
+
+            db.session.delete(existing_rsvp)
+            db.session.commit()
+
+
+            return jsonify(
+                {
+                    'message': "successful",
+                    'result': "RSVP removed",
+                    'status_code': 200
+                }
+            )
+        
+        else:
+            return jsonify(
+                {
+                    "error": "Unauthorized"        
+                }
+            ), 401
+
+    except ValidationError as e:
+        db.session.rollback()
+        return jsonify(
+            {
+                'error': str(e)
+            }
+        ), 400
+    
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Unexpected error: {e}")
+        return jsonify(
+            {
+                'error': f'Internal server error: {e}'
+            }
+        ), 500
+
+
 
