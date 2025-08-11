@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify # type: ignore
-from app.utils.validators import validate_event_data, validate_rsvp_data # type: ignore
+from app.utils.validators import validate_rsvp_data # type: ignore
 from app.services.elasticsearch_service import ElasticsearchService
 from app.utils.exceptions import SearchServiceError, ValidationError
 from app import redis_client
@@ -117,10 +117,27 @@ def create_rsvp(event_id):
         ), 500
 
 
+@rsvp_blueprint.route("/<uuid:user_id>/rsvps", methods=["GET"])
+def get_all_rsvps_events_for_a_user(user_id):
+    try:
+        rsvps = RSVP.query.filter(RSVP.user_id == user_id).all()
+        rsvps_data = []
 
+        for rsvp in rsvps:
+            rsvps_data.append(
+                rsvp.to_json()
+            )
 
+        return jsonify(rsvps_data)
 
-
+ 
+    except Exception as e:
+        return jsonify (
+            {
+                'error': str(e),
+                'status_code': 400
+            }
+        )
 
 
 
