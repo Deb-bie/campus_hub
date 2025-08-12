@@ -221,4 +221,25 @@ def remove_rsvp(event_id, user_id):
         ), 500
 
 
+@rsvp_blueprint.route("/rsvps/<uuid:event_id>", methods=["GET"])
+def get_all_rsvps_for_an_event(event_id):
+    try:
+        rsvps = RSVP.query.filter(RSVP.event_id == event_id).all()
+        rsvps_data = []
+
+        for rsvp in rsvps:
+            rsvps_data.append(
+                rsvp.to_json()
+            )
+
+        return jsonify(rsvps_data)
+
+ 
+    except Exception as e:
+        return jsonify (
+            {
+                'error': str(e),
+                'status_code': 400
+            }
+        )
 
