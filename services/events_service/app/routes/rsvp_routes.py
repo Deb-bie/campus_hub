@@ -1,9 +1,7 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify # type: ignore
 from app.utils.validators import validate_rsvp_data # type: ignore
-from app.services.elasticsearch_service import ElasticsearchService
 from app.utils.exceptions import SearchServiceError, ValidationError
-from app import redis_client
 from app.kafka import publisher
 from app.models.rsvp import RSVP
 from ..utils.db import db
@@ -233,8 +231,31 @@ def get_all_rsvps_for_an_event(event_id):
             )
 
         return jsonify(rsvps_data)
-
  
+    except Exception as e:
+        return jsonify (
+            {
+                'error': str(e),
+                'status_code': 400
+            }
+        )
+
+
+@rsvp_blueprint.route("/<uuid:user_id>/past-events", methods=["GET"])
+def get_a_users_past_events(user_id):
+    today = datetime.now()
+    try:
+        past_events = (
+            db.session.query(Event).join(RSVP, RSVP.event_id == Event.id).filter(RSVP.user_id == user_id).filter(Event.end_time < today)
+        )
+
+        data = []
+
+        for past_event in past_events:
+            data.append(past_event.to_json())
+
+        return jsonify(data)
+
     except Exception as e:
         return jsonify (
             {
