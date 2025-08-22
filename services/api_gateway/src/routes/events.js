@@ -8,6 +8,55 @@ router.use(express.urlencoded({ extended: true }));
 
 const target = process.env.EVENTS_SERVICE_URL;
 
+router.use(
+  '/explore-events',
+  createProxyMiddleware({
+    target: target,
+    changeOrigin: true,
+    pathRewrite: { 
+      '^/': 'api/events/explore-events/' 
+    }
+  
+  }),
+);
+
+router.use(
+  '/this-week',
+  createProxyMiddleware({
+    target: target,
+    changeOrigin: true,
+    pathRewrite: { 
+      '^/': 'api/events/this-week/' 
+    }
+  
+  }),
+);
+
+router.use(
+  '/upcoming',
+  createProxyMiddleware({
+    target: target,
+    changeOrigin: true,
+    pathRewrite: { 
+      '^/': 'api/events/upcoming/' 
+    }
+  
+  }),
+);
+
+router.use(
+  '/feed',
+  createProxyMiddleware({
+    target: target,
+    changeOrigin: true,
+    pathRewrite: { 
+      '^/': 'api/events/feed/' 
+    }
+  
+  }),
+);
+
+
 
 router.use(
   '/',
@@ -92,17 +141,7 @@ router.use(
 );
 
 
-router.use(
-  '/feed',
-  createProxyMiddleware({
-    target: target,
-    changeOrigin: true,
-    pathRewrite: { 
-      '^/': 'api/events/feed/' 
-    }
-  
-  }),
-);
+
 
 module.exports = router;
 
