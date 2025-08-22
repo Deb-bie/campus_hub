@@ -2,6 +2,7 @@ from flask import Flask # type: ignore
 from .config import config
 from .utils.db import db
 from app.routes.event_routes import event_blueprint
+from app.routes.rsvp_routes import rsvp_blueprint
 
 
 def create_app():
@@ -11,6 +12,7 @@ def create_app():
     db.init_app(app)
     
     app.register_blueprint(event_blueprint)
+    app.register_blueprint(rsvp_blueprint)
 
     with app.app_context():
         # create database tables if they don't exist

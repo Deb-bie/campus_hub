@@ -295,7 +295,6 @@ def get_all_events():
         )
 
 
-
 @event_blueprint.route("/feed/<uuid:event_id>", methods=["GET"])
 def get_an_event(event_id):
     try:
@@ -358,6 +357,31 @@ def get_this_weeks_events():
     
     try:
         events = Event.query.filter(Event.start_time >= start_of_week ).filter(Event.start_time <= end_of_week).order_by(Event.start_time.asc()).limit(5).all()
+        events_data = []
+
+        for event in events:
+            events_data.append(
+                event.to_json()
+            )
+
+        return jsonify(events_data)
+ 
+
+    except Exception as e:
+        return jsonify (
+            {
+                'error': str(e),
+                'status_code': 400
+            }
+        )
+    
+
+
+@event_blueprint.route("/explore-events/", methods=["GET"])
+def get_events():
+    today = datetime.now()
+    try:
+        events = Event.query.filter(Event.start_time >= today).order_by(Event.start_time.asc()).all()
         events_data = []
 
         for event in events:
