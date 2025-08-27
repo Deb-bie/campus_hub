@@ -6,7 +6,9 @@ import io.campushub.auth_service.dto.requests.ProfileServiceRequestDto;
 import io.campushub.auth_service.dto.requests.ProfileServiceUpdateDto;
 import io.campushub.auth_service.dto.requests.SignInRequestDto;
 import io.campushub.auth_service.dto.requests.SignUpRequestDto;
+import io.campushub.auth_service.dto.responses.ProfileServiceResponseDto;
 import io.campushub.auth_service.dto.responses.ResponseHandler;
+import io.campushub.auth_service.dto.responses.AuthResponseDto;
 import io.campushub.auth_service.entity.AuthUser;
 import io.campushub.auth_service.enums.AuthStatus;
 import io.campushub.auth_service.exceptions.AlreadyExistsException;
@@ -27,6 +29,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.sql.Timestamp;
 import java.util.Optional;
@@ -67,8 +70,9 @@ public class AuthService {
         this.webClient = webClientFactory.createClient(profileServiceUrl);
     }
 
-    public ResponseEntity<ResponseHandler<String>> signUp(SignUpRequestDto signUpRequestDto) throws Exception {
+    public ResponseEntity<ResponseHandler<AuthResponseDto>> signUp(SignUpRequestDto signUpRequestDto) throws Exception {
         String jwt;
+        AuthResponseDto authResponseDto = new AuthResponseDto();
         Optional<AuthUser> emailExists = authRepository.findByEmail(signUpRequestDto.getEmail());
 
         if (emailExists.isPresent()) {
@@ -107,6 +111,16 @@ public class AuthService {
             SecurityContextHolder.getContext().setAuthentication(auth);
             UserDetails userDetails = (UserDetails) auth.getPrincipal();
             jwt = jwtService.generateToken(userDetails);
+
+            ProfileServiceResponseDto profileServiceResponse = getUserDetailsFromProfileService(signUpRequestDto.getEmail());
+
+            authResponseDto.setEmail(signUpRequestDto.getEmail());
+            authResponseDto.setUserId(profileServiceResponse.getUser_id());
+            authResponseDto.setFirstName(profileServiceResponse.getFirst_name());
+            authResponseDto.setLastName(profileServiceResponse.getLast_name());
+            authResponseDto.setToken(jwt);
+
+
             logProducer.emitAuthUserSignInLog(authUser.getAuth_id().toString(), authUser.getEmail());
 
         }
@@ -117,16 +131,17 @@ public class AuthService {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(
-                        ResponseHandler.<String>builder()
+                        ResponseHandler.<AuthResponseDto>builder()
                                 .statusCode(201)
                                 .status(HttpStatus.CREATED)
-                                .message(jwt)
+                                .message(authResponseDto)
                         .build()
                 );
     }
 
-    public ResponseEntity<ResponseHandler<String>> signIn(SignInRequestDto signInRequestDto) throws Exception {
+    public ResponseEntity<ResponseHandler<AuthResponseDto>> signIn(SignInRequestDto signInRequestDto) throws Exception {
         String jwt;
+        AuthResponseDto authResponseDto = new AuthResponseDto();
         Optional<AuthUser> emailExists = authRepository.findByEmail(signInRequestDto.getEmail());
         if (emailExists.isPresent()) {
             AuthUser authUser = emailExists.get();
@@ -142,6 +157,14 @@ public class AuthService {
                 UserDetails userDetails = (UserDetails) auth.getPrincipal();
                 jwt = jwtService.generateToken(userDetails);
 
+                ProfileServiceResponseDto profileServiceResponse = getUserDetailsFromProfileService(signInRequestDto.getEmail());
+
+                authResponseDto.setEmail(signInRequestDto.getEmail());
+                authResponseDto.setUserId(profileServiceResponse.getUser_id());
+                authResponseDto.setFirstName(profileServiceResponse.getFirst_name());
+                authResponseDto.setLastName(profileServiceResponse.getLast_name());
+                authResponseDto.setToken(jwt);
+
                 authUser.setLast_login(new Timestamp(System.currentTimeMillis()));
                 authUser.setAuthStatus(AuthStatus.ACTIVE);
                 authRepository.save(authUser);
@@ -152,8 +175,6 @@ public class AuthService {
             }
 
 
-
-
         } else {
             throw new NotFoundException("Email does not exists");
         }
@@ -162,12 +183,10 @@ public class AuthService {
                 .status(HttpStatus.OK)
                 .body(
                         ResponseHandler
-                                .<String>builder()
+                                .<AuthResponseDto>builder()
                                 .status(HttpStatus.OK)
                                 .statusCode(HttpStatus.OK.value())
-                                .message(
-                                        jwt
-                                )
+                                .message(authResponseDto)
                                 .build()
                 );
 
@@ -251,5 +270,16 @@ public class AuthService {
                     System.err.println("Error calling profile service: " + error.getMessage());
                 })
                 .block();
+    }
+
+    public ProfileServiceResponseDto getUserDetailsFromProfileService(String email) {
+
+        Mono<ProfileServiceResponseDto> user = webClient
+                .get()
+                .uri("/api/v1/users/profile/email/"+ email)
+                .retrieve()
+                .bodyToMono(ProfileServiceResponseDto.class);
+
+        return user.block();
     }
 }
