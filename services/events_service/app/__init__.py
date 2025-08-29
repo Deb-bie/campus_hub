@@ -1,6 +1,6 @@
 from flask import Flask # type: ignore
 from .config import config
-from .utils.db import db
+from .utils.db import db, migrate
 from app.routes.event_routes import event_blueprint
 from app.routes.rsvp_routes import rsvp_blueprint
 
@@ -10,6 +10,7 @@ def create_app():
     app.config.from_object(config)
 
     db.init_app(app)
+    migrate.init_app(app, db)
     
     app.register_blueprint(event_blueprint)
     app.register_blueprint(rsvp_blueprint)
